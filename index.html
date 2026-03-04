@@ -3,1378 +3,1384 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Citizenship Application Helper (Single Person)</title>
+    <title>Visa Vault POC — Local-first Application Organizer</title>
+    <meta name="description" content="Local-first application organizer POC: addresses, education, employment, travel, passports, SSN/SIN, language proof. Export/Import JSON." />
     <style>
+        :root {
+            color-scheme: light dark;
+        }
+
         body {
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-            margin: 24px;
-            line-height: 1.35;
+            font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+            margin: 0;
+            line-height: 1.45;
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         h1 {
-            font-size: 22px;
-            margin: 0 0 10px;
+            font-size: 18px;
+            margin: 0;
         }
 
-        h2 {
-            font-size: 18px;
-            margin-top: 26px;
+        .muted {
+            opacity: .82;
+        }
+
+        .pill {
+            border: 1px solid rgba(127,127,127,.35);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-size: 12px;
+            opacity: .9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        @media (max-width: 980px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .card {
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 16px;
-            margin: 12px 0;
+            border: 1px solid rgba(127,127,127,.35);
+            border-radius: 18px;
+            padding: 14px;
+            background: rgba(127,127,127,.06);
         }
 
-        label {
-            display: block;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
-        input, select, textarea {
+        .navbtn {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin-top: 6px;
+            text-align: left;
+            border: 1px solid rgba(127,127,127,.30);
+            background: transparent;
+            border-radius: 14px;
+            padding: 10px 12px;
+            cursor: pointer;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
 
-        textarea {
-            min-height: 70px;
+            .navbtn[aria-current="true"] {
+                background: rgba(127,127,127,.18);
+                border-color: rgba(127,127,127,.55);
+            }
+
+        .small {
+            font-size: 12px;
+            opacity: .8;
+        }
+
+        .notice {
+            border-left: 4px solid rgba(127,127,127,.55);
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(127,127,127,.08);
+            margin-top: 10px;
+            white-space: pre-wrap;
         }
 
         .row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .row3 {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-        }
-
-        .muted {
-            color: #555;
-            font-size: 13px;
-            margin-top: 6px;
-        }
-
-        .actions {
-            display: flex;
             gap: 10px;
+        }
+
+        @media (max-width: 700px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin: 10px 0 6px;
+            font-size: 12px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(127,127,127,.45);
+            background: transparent;
+            font-size: 14px;
+        }
+
+        textarea {
+            min-height: 86px;
+            resize: vertical;
+        }
+
+        .btnrow {
+            display: flex;
             flex-wrap: wrap;
+            gap: 10px;
             margin-top: 12px;
         }
 
-        button {
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #aaa;
-            background: #f7f7f7;
+        .btn {
+            appearance: none;
+            border: 1px solid rgba(127,127,127,.45);
+            background: transparent;
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-weight: 800;
             cursor: pointer;
         }
 
-            button.primary {
-                background: #111;
-                color: #fff;
-                border-color: #111;
+            .btn.primary {
+                background: rgba(127,127,127,.18);
+                border-color: rgba(127,127,127,.55);
             }
 
-            button.danger {
-                border-color: #b00020;
-                color: #b00020;
-                background: #fff;
+            .btn.danger {
+                border-color: rgba(220,80,80,.65);
             }
 
-        .error {
-            color: #b00020;
-            font-weight: 650;
-            margin-top: 8px;
+        .tableWrap {
+            overflow: auto;
+            border-radius: 14px;
+            border: 1px solid rgba(127,127,127,.25);
+            background: rgba(127,127,127,.03);
+            margin-top: 10px;
         }
 
-        .ok {
-            color: #1a7f37;
-            font-weight: 650;
-            margin-top: 8px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 860px;
         }
 
-        .inline {
-            display: flex;
-            align-items: center;
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(127,127,127,.18);
+            font-size: 13px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            opacity: .75;
+        }
+
+        .badge {
+            font-size: 12px;
+            border: 1px solid rgba(127,127,127,.35);
+            border-radius: 999px;
+            padding: 6px 10px;
+            opacity: .85;
+            display: inline-flex;
+        }
+
+        .kpi {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             margin-top: 10px;
         }
 
-            .inline input[type="checkbox"] {
-                width: auto;
-                margin-top: 0;
+        @media (max-width: 980px) {
+            .kpi {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .kpi .card {
+            padding: 12px;
+        }
+
+        .num {
+            font-weight: 900;
+            font-size: 20px;
+        }
+
+        .actionsTop {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+            .actionsTop .right {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                align-items: center;
             }
 
-        .small {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .divider {
-            height: 1px;
-            background: #eee;
-            margin: 14px 0;
-        }
-
-        .listItemHeader {
+        .inlineWarn {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
             gap: 10px;
+            align-items: flex-start;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(220,80,80,.55);
+            background: rgba(220,80,80,.08);
+            margin-top: 10px;
+        }
+
+            .inlineWarn strong {
+                display: block;
+                margin-bottom: 4px;
+            }
+
+        .chkRow {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-top: 10px;
+        }
+
+            .chkRow input {
+                width: auto;
+                margin-top: 3px;
+            }
+
+        code.inline {
+            padding: 2px 6px;
+            border: 1px solid rgba(127,127,127,.3);
+            border-radius: 8px;
+            background: rgba(127,127,127,.08);
         }
     </style>
 </head>
+
 <body>
-    <h1>Citizenship Application Helper (Single Person)</h1>
-    <p class="muted">
-        This mirrors the main fields from the IRCC online citizenship application copy you uploaded. Store locally in your browser and export/import JSON.
-    </p>
-
-    <div class="actions">
-        <button class="primary" id="btnSave">Save (Local)</button>
-        <button id="btnExport">Export JSON</button>
-        <label style="font-weight:600; margin:0;">
-            Import JSON
-            <input type="file" id="importFile" accept="application/json" />
-        </label>
-        <button class="danger" id="btnClear">Clear All</button>
-    </div>
-
-    <div id="globalMsg"></div>
-
-    <!-- SECTION: Tell us about yourself -->
-    <h2>Tell us about yourself</h2>
-    <div class="card">
-        <div class="row">
+    <div class="wrap">
+        <div class="top">
             <div>
-                <label for="serviceLanguage">Service language</label>
-                <select id="serviceLanguage">
-                    <option value="">Select…</option>
-                    <option>English</option>
-                    <option>French</option>
-                </select>
+                <div class="badge">POC</div>
+                <h1>Visa Vault POC — Application Organizer</h1>
+                <div class="muted small" style="margin-top:6px;">
+                    Local-first. No accounts. No document uploads yet. Export/import via JSON.
+                </div>
             </div>
-            <div class="inline">
-                <input type="checkbox" id="needsAccommodation" />
-                <label for="needsAccommodation" style="margin:0;">Special needs requiring accommodation?</label>
-            </div>
+            <div class="pill" title="Privacy promise">🔒 Stored locally in your browser</div>
         </div>
 
-        <div class="row">
-            <div>
-                <label for="uci">Unique Client Identifier (UCI)</label>
-                <input id="uci" placeholder="e.g., 1113008245" />
-                <div class="small">Usually 8 or 10 digits.</div>
-            </div>
-            <div>
-                <label for="maritalStatus">Marital status</label>
-                <select id="maritalStatus">
-                    <option value="">Select…</option>
-                    <option>Single</option>
-                    <option>Married</option>
-                    <option>Common-law</option>
-                    <option>Divorced</option>
-                    <option>Separated</option>
-                    <option>Widowed</option>
-                </select>
-            </div>
+        <div class="notice" style="margin-top:12px;">
+            <strong>Document storage is coming later.</strong>
+            For this proof of concept, we only collect structured inputs.
+            Future version: upload/store/download supporting documents per category.
         </div>
 
-        <div class="row">
-            <div>
-                <label for="familyName">Family name (Last name)</label>
-                <input id="familyName" />
-            </div>
-            <div>
-                <label for="givenNames">Given name(s) (include middle name)</label>
-                <input id="givenNames" />
-            </div>
-        </div>
+        <div class="grid">
+            <!-- LEFT NAV -->
+            <div class="card" aria-label="Categories">
+                <div class="small muted" style="margin-bottom:10px; font-weight:700;">Categories</div>
 
-        <div class="row">
-            <div class="inline">
-                <input type="checkbox" id="changedNameSincePR" />
-                <label for="changedNameSincePR" style="margin:0;">Changed name since becoming a permanent resident?</label>
-            </div>
-            <div class="inline">
-                <input type="checkbox" id="usedOtherNames" />
-                <label for="usedOtherNames" style="margin:0;">Ever used any other name?</label>
-            </div>
-        </div>
+                <button class="navbtn" id="nav-addresses" aria-current="true">Addresses</button>
+                <button class="navbtn" id="nav-education">Education history</button>
+                <button class="navbtn" id="nav-employment">Employment history</button>
+                <button class="navbtn" id="nav-travel">Travel (countries/trips)</button>
+                <button class="navbtn" id="nav-presence">Physical presence calculator</button>
+                <button class="navbtn" id="nav-passports">Passports & travel documents</button>
+                <button class="navbtn" id="nav-ids">SSN & SIN</button>
+                <button class="navbtn" id="nav-language">Language proof</button>
 
-        <label for="otherNamesDetails">Other name(s) details (if applicable)</label>
-        <textarea id="otherNamesDetails" placeholder="Aliases, maiden name, spelling variants, etc."></textarea>
+                <div class="notice">
+                    <strong>Export/Import</strong>
+                    Use <code class="inline">Export</code> to download a JSON backup.
+                    Use <code class="inline">Import</code> to restore data on this device.
+                </div>
 
-        <div class="row3">
-            <div>
-                <label for="gender">Gender</label>
-                <select id="gender">
-                    <option value="">Select…</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Another gender</option>
-                    <option>Prefer not to say</option>
-                </select>
+                <div class="btnrow">
+                    <button class="btn primary" id="btnExport" type="button">Export</button>
+                    <button class="btn" id="btnImport" type="button">Import</button>
+                    <button class="btn danger" id="btnClearAll" type="button">Clear all</button>
+                </div>
+
+                <div class="notice" id="statusBox" style="display:none;" role="status" aria-live="polite"></div>
             </div>
-            <div class="inline" style="align-items:flex-end;">
-                <input type="checkbox" id="changeGenderForApp" />
-                <label for="changeGenderForApp" style="margin:0;">Need to change gender for application?</label>
-            </div>
-            <div>
-                <label for="eyeColour">Eye colour</label>
-                <input id="eyeColour" placeholder="e.g., Black, Brown, Blue" />
+
+            <!-- RIGHT PANEL -->
+            <div class="card" aria-label="Category detail">
+                <div class="actionsTop">
+                    <div>
+                        <div class="small muted" id="screenKicker">Category</div>
+                        <h2 id="screenTitle" style="margin:0; font-size:16px;">Addresses</h2>
+                        <div class="small muted" id="screenHelp" style="margin-top:6px;"></div>
+                    </div>
+                    <div class="right">
+                        <span class="badge" id="storageBadge">Saved locally</span>
+                    </div>
+                </div>
+
+                <div class="kpi">
+                    <div class="card" style="box-shadow:none;">
+                        <div class="num" id="kpiCount">0</div>
+                        <div class="small">Entries in this category</div>
+                    </div>
+                    <div class="card" style="box-shadow:none;">
+                        <div class="num" id="kpiChecks">—</div>
+                        <div class="small">Quick check</div>
+                    </div>
+                </div>
+
+                <div id="panel"></div>
+
+                <div class="notice" style="margin-top:14px;">
+                    <strong>Not legal advice.</strong>
+                    This tool organizes your information. You review and submit official applications yourself.
+                </div>
             </div>
         </div>
 
-        <div class="row3">
-            <div>
-                <label for="heightCm">Height (cm)</label>
-                <input id="heightCm" type="number" min="0" step="1" />
-            </div>
-            <div>
-                <label for="dob">Date of birth</label>
-                <input id="dob" type="date" />
-            </div>
-            <div class="inline" style="align-items:flex-end;">
-                <input type="checkbox" id="correctedDOBDocs" />
-                <label for="correctedDOBDocs" style="margin:0;">Corrected DOB on immigration docs / legally changed since coming to Canada?</label>
+        <!-- IMPORT MODAL (inline area) -->
+        <div class="card" id="importArea" style="display:none; margin-top:14px;">
+            <div style="font-weight:900; margin-bottom:8px;">Import JSON backup</div>
+            <div class="small muted">Paste the contents of your exported JSON file here. Import overwrites local data on this device.</div>
+            <textarea id="importText" placeholder='Paste exported JSON here...'></textarea>
+            <div class="btnrow">
+                <button class="btn primary" id="btnImportApply" type="button">Import now</button>
+                <button class="btn" id="btnImportCancel" type="button">Cancel</button>
             </div>
         </div>
-
-        <div class="inline">
-            <input type="checkbox" id="needCorrectDOBForApp" />
-            <label for="needCorrectDOBForApp" style="margin:0;">Need to correct DOB for citizenship application?</label>
-        </div>
-
-        <div class="row">
-            <div>
-                <label for="birthCity">Place of birth: City/town</label>
-                <input id="birthCity" />
-            </div>
-            <div>
-                <label for="birthCountry">Place of birth: Country/territory</label>
-                <input id="birthCountry" />
-            </div>
-        </div>
-    </div>
-
-    <!-- SECTION: Contact information -->
-    <h2>Contact information</h2>
-    <div class="card">
-        <label for="email">Email address</label>
-        <input id="email" type="email" />
-
-        <div class="divider"></div>
-        <h3 style="margin:0 0 6px;">Home address</h3>
-        <div class="row3">
-            <div><label for="homeCountry">Country/territory</label><input id="homeCountry" /></div>
-            <div><label for="homeUnit">Apt/unit (optional)</label><input id="homeUnit" /></div>
-            <div><label for="homeStreetNo">Street number (optional)</label><input id="homeStreetNo" /></div>
-        </div>
-        <div class="row">
-            <div><label for="homeStreetName">Street name</label><input id="homeStreetName" /></div>
-            <div><label for="homeCity">City/town</label><input id="homeCity" /></div>
-        </div>
-        <div class="row3">
-            <div><label for="homeProvince">Province/State</label><input id="homeProvince" /></div>
-            <div><label for="homePostal">Postal/Zip code</label><input id="homePostal" /></div>
-            <div class="inline" style="align-items:flex-end;">
-                <input type="checkbox" id="mailSameAsHome" />
-                <label for="mailSameAsHome" style="margin:0;">Mailing address same as home?</label>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-        <h3 style="margin:0 0 6px;">Phone</h3>
-        <div class="row3">
-            <div>
-                <label for="phoneRegion">Phone from</label>
-                <select id="phoneRegion">
-                    <option value="">Select…</option>
-                    <option>Canada/US</option>
-                    <option>Other</option>
-                </select>
-            </div>
-            <div>
-                <label for="phoneType">Phone type</label>
-                <select id="phoneType">
-                    <option value="">Select…</option>
-                    <option>Cellular</option>
-                    <option>Home</option>
-                    <option>Work</option>
-                </select>
-            </div>
-            <div>
-                <label for="countryCode">Country code</label>
-                <input id="countryCode" placeholder="e.g., 1" />
-            </div>
-        </div>
-        <div class="row3">
-            <div><label for="phoneNumber">Phone number</label><input id="phoneNumber" /></div>
-            <div><label for="phoneExt">Extension (optional)</label><input id="phoneExt" /></div>
-            <div class="inline" style="align-items:flex-end;">
-                <input type="checkbox" id="hasAltPhone" />
-                <label for="hasAltPhone" style="margin:0;">Has alternative phone?</label>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-        <div class="inline">
-            <input type="checkbox" id="hasHelper" />
-            <label for="hasHelper" style="margin:0;">Is someone helping you fill out this application?</label>
-        </div>
-
-        <div class="inline">
-            <input type="checkbox" id="appointRep" />
-            <label for="appointRep" style="margin:0;">Appoint a representative?</label>
-        </div>
-        <label for="repDetails">Representative details (if applicable)</label>
-        <textarea id="repDetails" placeholder="Name, relationship, contact info, notes"></textarea>
-    </div>
-
-    <!-- SECTION: Identification uploads -->
-    <h2>Identification (uploads)</h2>
-    <div class="card">
-        <p class="muted">Store filenames here (or attach files if you later add upload support). IRCC asks for a digital citizenship photo + photographer info, and personal IDs like PR card/driver’s licence. :contentReference[oaicite:13]{index=13}</p>
-        <label for="citPhotoFile">Digital citizenship photo filename</label>
-        <input id="citPhotoFile" placeholder="e.g., Passport Photo.jpg" />
-
-        <div class="row">
-            <div>
-                <label for="photographerName">Photographer/business name</label>
-                <input id="photographerName" />
-            </div>
-            <div>
-                <label for="photoTakenDate">Date photo was taken</label>
-                <input id="photoTakenDate" type="date" />
-            </div>
-        </div>
-
-        <label for="photographerAddress">Photographer/business address</label>
-        <textarea id="photographerAddress" placeholder="Street, city, province/state, postal, country"></textarea>
-
-        <div class="row">
-            <div>
-                <label for="prCardFile">PR card filename</label>
-                <input id="prCardFile" placeholder="e.g., PR Card.pdf" />
-            </div>
-            <div>
-                <label for="driversLicenseFile">Driver’s licence filename</label>
-                <input id="driversLicenseFile" placeholder="e.g., Driver's License.pdf" />
-            </div>
-        </div>
-    </div>
-
-    <!-- SECTION: Addresses (5-year eligibility period) -->
-    <h2>Addresses (5-year eligibility period)</h2>
-    <div class="card">
-        <p class="muted">IRCC asks you to list all addresses inside/outside Canada during your entire 5-year eligibility period. :contentReference[oaicite:14]{index=14}</p>
-        <div id="addresses"></div>
-        <button id="addAddress">+ Add address</button>
-        <div id="addrMsg" class="error"></div>
-    </div>
-
-    <!-- SECTION: Tax -->
-    <h2>Income taxes</h2>
-    <div class="card">
-        <div class="inline">
-            <input type="checkbox" id="hasTaxId" />
-            <label for="hasTaxId" style="margin:0;">Have SIN/TTN/ITN?</label>
-        </div>
-        <label for="taxIdNumber">9-digit number used to file taxes (CRA)</label>
-        <input id="taxIdNumber" placeholder="e.g., 145161873" />
-
-        <div class="divider"></div>
-        <h3 style="margin:0 0 6px;">Tax filing (last 5 years)</h3>
-        <div id="taxYears"></div>
-
-        <div class="inline">
-            <input type="checkbox" id="craConsent" />
-            <label for="craConsent" style="margin:0;">Consent to release SIN/ITN/TTN to CRA</label>
-        </div>
-        <p class="muted">These items appear in your application copy. :contentReference[oaicite:15]{index=15}</p>
-    </div>
-
-    <!-- SECTION: Other statuses -->
-    <h2>Immigration / citizenship status in other countries</h2>
-    <div class="card">
-        <div class="inline">
-            <input type="checkbox" id="hasOtherStatuses" />
-            <label for="hasOtherStatuses" style="margin:0;">Currently or ever held status in a country other than Canada?</label>
-        </div>
-        <div id="statuses"></div>
-        <button id="addStatus">+ Add status</button>
-        <p class="muted">This is asked in the application. :contentReference[oaicite:16]{index=16}</p>
-    </div>
-
-    <!-- SECTION: Travel documents / passports -->
-    <h2>Travel documents or passports (within eligibility period)</h2>
-    <div class="card">
-        <div class="inline">
-            <input type="checkbox" id="heldPassportsInEligibility" />
-            <label for="heldPassportsInEligibility" style="margin:0;">Held travel documents/passports during eligibility period?</label>
-        </div>
-
-        <label for="passportExplanation">Explanation (if needed)</label>
-        <textarea id="passportExplanation" placeholder="e.g., This is my current passport."></textarea>
-
-        <div id="passports"></div>
-        <button id="addPassport">+ Add passport</button>
-
-        <div id="passportMsg" class="error"></div>
-        <p class="muted">IRCC asks issued/expiry/doc number/country/place + bio page upload indicator. :contentReference[oaicite:17]{index=17}</p>
-    </div>
-
-    <!-- SECTION: Work / school / activities -->
-    <h2>Work, school and activities (past 5 years)</h2>
-    <div class="card">
-        <div id="activities"></div>
-        <button id="addActivity">+ Add activity</button>
-        <div id="activityMsg" class="error"></div>
-        <p class="muted">IRCC asks for employment/education history during the 5-year eligibility period. :contentReference[oaicite:18]{index=18}</p>
-    </div>
-
-    <!-- SECTION: Physical presence + trips -->
-    <h2>Physical presence (trips outside Canada)</h2>
-    <div class="card">
-        <div class="row">
-            <div>
-                <label for="eligStart">Eligibility period start</label>
-                <input id="eligStart" type="date" />
-            </div>
-            <div>
-                <label for="eligEnd">Eligibility period end</label>
-                <input id="eligEnd" type="date" />
-            </div>
-        </div>
-        <div class="row">
-            <div>
-                <label for="prDate">Date you became a permanent resident</label>
-                <input id="prDate" type="date" />
-            </div>
-            <div class="inline" style="align-items:flex-end;">
-                <input type="checkbox" id="wasCrownServant" />
-                <label for="wasCrownServant" style="margin:0;">Lived outside Canada as a Crown servant?</label>
-            </div>
-        </div>
-        <div class="inline">
-            <input type="checkbox" id="wasCrownFamily" />
-            <label for="wasCrownFamily" style="margin:0;">Lived outside Canada as family member of Crown servant?</label>
-        </div>
-        <div class="inline">
-            <input type="checkbox" id="hadTempStatusBeforePR" />
-            <label for="hadTempStatusBeforePR" style="margin:0;">Had valid temporary resident status before PR?</label>
-        </div>
-        <div class="inline">
-            <input type="checkbox" id="hadProtectedStatusBeforePR" />
-            <label for="hadProtectedStatusBeforePR" style="margin:0;">Had protected person status before PR?</label>
-        </div>
-        <div class="inline">
-            <input type="checkbox" id="servedSentence" />
-            <label for="servedSentence" style="margin:0;">Spent time serving a sentence during eligibility period?</label>
-        </div>
-
-        <div class="divider"></div>
-        <div class="inline">
-            <input type="checkbox" id="leftCanada" />
-            <label for="leftCanada" style="margin:0;">Left Canada during eligibility period?</label>
-        </div>
-
-        <div id="trips"></div>
-        <button id="addTrip">+ Add trip</button>
-        <div id="tripMsg" class="error"></div>
-
-        <p class="muted">
-            Trips are captured as “Date you left Canada”, “Date you returned to Canada”, “Reason”, optional description. :contentReference[oaicite:19]{index=19}
-            Eligibility period is shown in your copy as well. :contentReference[oaicite:20]{index=20}
-        </p>
-    </div>
-
-    <!-- SECTION: Prohibitions -->
-    <h2>Prohibitions (Citizenship Act)</h2>
-    <div class="card">
-        <p class="muted">These are the “are you now / have you ever” prohibition questions. :contentReference[oaicite:21]{index=21}</p>
-        <div id="prohibitions"></div>
-        <div class="inline">
-            <input type="checkbox" id="prohibitionsConfirm" />
-            <label for="prohibitionsConfirm" style="margin:0;">I confirm I have read and understand the prohibitions</label>
-        </div>
-    </div>
-
-    <!-- SECTION: Language proof -->
-    <h2>Language proof</h2>
-    <div class="card">
-        <div class="inline">
-            <input type="checkbox" id="hasLanguageProof" />
-            <label for="hasLanguageProof" style="margin:0;">Have proof of knowledge of English or French?</label>
-        </div>
-        <label for="languageProofType">Type of proof</label>
-        <input id="languageProofType" placeholder="e.g., Post-secondary education in English" />
-        <label for="languageProofFile">Upload filename</label>
-        <input id="languageProofFile" placeholder="e.g., Educational Credential Assessment.pdf" />
-        <p class="muted">These fields appear in your copy. :contentReference[oaicite:22]{index=22}</p>
-    </div>
-
-    <!-- SECTION: Consents + certificate + fee + signature -->
-    <h2>Consents, certificate, fee, signature</h2>
-    <div class="card">
-        <div class="inline"><input type="checkbox" id="consentMP" /><label for="consentMP" style="margin:0;">Consent: congratulatory letter from MP</label></div>
-        <div class="inline"><input type="checkbox" id="consentElectors" /><label for="consentElectors" style="margin:0;">Consent: National Register of Electors</label></div>
-        <div class="inline"><input type="checkbox" id="consentQuebecElectors" /><label for="consentQuebecElectors" style="margin:0;">Consent: Quebec permanent list of electors</label></div>
-
-        <label for="certificateType">Citizenship certificate type</label>
-        <select id="certificateType">
-            <option value="">Select…</option>
-            <option>Electronic (e-certificate)</option>
-            <option>Paper certificate</option>
-        </select>
-
-        <label for="optionalDocs">Other supporting documents (optional) filenames/notes</label>
-        <textarea id="optionalDocs"></textarea>
-
-        <label for="feeReceiptFile">Fee receipt filename</label>
-        <input id="feeReceiptFile" placeholder="e.g., Application Payment Receipt.pdf" />
-
-        <div class="row">
-            <div>
-                <label for="signCity">City where you sign</label>
-                <input id="signCity" />
-            </div>
-            <div>
-                <label for="signedOn">Signed on</label>
-                <input id="signedOn" type="date" />
-            </div>
-        </div>
-
-        <p class="muted">These items show up at the end of your copy. :contentReference[oaicite:23]{index=23}</p>
     </div>
 
     <script>
-        /** ---------------------------
-         *  Utilities (date-safe)
-         * --------------------------*/
-        function parseDate(v) {
-            if (!v) return null;
-            const [y, m, d] = v.split("-").map(Number);
-            if (!y || !m || !d) return null;
-            return new Date(Date.UTC(y, m - 1, d));
-        }
-        function isAfter(a, b) { return a && b && a.getTime() > b.getTime(); }
-        function isOnOrAfter(a, b) { return a && b && a.getTime() >= b.getTime(); }
-
-        function uid() { return Math.random().toString(36).slice(2, 10); }
-
-        const STORAGE_KEY = "citizenship_helper_profile_v1";
-
-        /** ---------------------------
-         *  State
-         * --------------------------*/
-        let profile = {
-            about: {
-                serviceLanguage: "",
-                needsAccommodation: false,
-                uci: "",
-                familyName: "",
-                givenNames: "",
-                changedNameSincePR: false,
-                usedOtherNames: false,
-                otherNamesDetails: "",
-                gender: "",
-                changeGenderForApp: false,
-                heightCm: "",
-                eyeColour: "",
-                dob: "",
-                correctedDOBDocs: false,
-                needCorrectDOBForApp: false,
-                birthCity: "",
-                birthCountry: "",
-                maritalStatus: "",
-            },
-            contact: {
-                email: "",
-                homeAddress: {
-                    country: "", unit: "", streetNo: "", streetName: "", city: "", province: "", postal: "",
-                    mailSameAsHome: true
-                },
-                phone: { region: "", type: "", countryCode: "", number: "", ext: "", hasAltPhone: false },
-                hasHelper: false,
-                appointRep: false,
-                repDetails: ""
-            },
-            identification: {
-                citPhotoFile: "",
-                photographerName: "",
-                photographerAddress: "",
-                photoTakenDate: "",
-                prCardFile: "",
-                driversLicenseFile: ""
-            },
-            addresses: [],
-            taxes: {
-                hasTaxId: false,
-                taxIdNumber: "",
-                years: [], // {year, filed, requiredIfNotFiled}
-                craConsent: false
-            },
-            otherStatuses: { hasOtherStatuses: false, items: [] }, // {country, status, startDate, endDate}
-            passports: {
-                heldInEligibility: false,
-                explanation: "",
-                items: [] // {docNumber,countryOfIssue,placeOfIssue,issued,expiry,hasBioPage,bioPageFile}
-            },
-            activities: [], // {from,to,isCurrent,occupation,employer,country,streetNo,streetName,city,province,notes}
-            physicalPresence: {
-                eligStart: "",
-                eligEnd: "",
-                prDate: "",
-                wasCrownServant: false,
-                wasCrownFamily: false,
-                hadTempStatusBeforePR: false,
-                hadProtectedStatusBeforePR: false,
-                servedSentence: false,
-                leftCanada: false,
-                trips: [] // {country,leftDate,returnDate,reason,description}
-            },
-            prohibitions: {
-                items: [
-                    { id: "imprisonment", label: "Serving a term of imprisonment?", value: false },
-                    { id: "probation", label: "On probation?", value: false },
-                    { id: "parole", label: "On parole?", value: false },
-                    { id: "sentenceOutsideCanada", label: "Serving a sentence outside Canada for an offence?", value: false },
-                    { id: "chargedCanada", label: "Charged/on trial/appeal: offence under Citizenship Act or indictable offence in Canada?", value: false },
-                    { id: "chargedOutside", label: "Charged/on trial/appeal: offence outside Canada?", value: false },
-                    { id: "removalOrder", label: "Ever under a removal order?", value: false },
-                    { id: "warCrimes", label: "Under investigation/charged/convicted of war crime or crime against humanity?", value: false },
-                    { id: "misrepresentation5y", label: "Prohibited in last 5 years for misrepresentation/withholding material circumstances?", value: false },
-                    { id: "revoked10y", label: "Citizenship taken away (revoked) in last 10 years for fraud/false representation?", value: false },
-                    { id: "indictable4y", label: "Convicted in last 4 years of indictable offence / offence under Citizenship Act?", value: false },
-                    { id: "offenceOutside", label: "Convicted of an offence outside Canada (regardless of pardon/amnesty)?", value: false },
-                    { id: "terrorTreasonSpy", label: "While PR: convicted in Canada of terrorism/high treason/treason/spying?", value: false },
-                    { id: "terrorOutside", label: "Convicted outside Canada of terrorism?", value: false },
-                    { id: "armedForceConflict", label: "Served as member of armed force/group engaged in armed conflict with Canada?", value: false },
-                ],
-                confirmRead: false
-            },
-            languageProof: { hasProof: false, proofType: "", file: "" },
-            consents: {
-                mpLetter: false, electors: false, quebecElectors: false,
-                certificateType: "",
-                optionalDocs: "",
-                feeReceiptFile: "",
-                signCity: "",
-                signedOn: ""
-            }
+        // =========================
+        // CONFIG
+        // =========================
+        const APP = {
+            name: "Visa Vault POC",
+            storageKey: "visa_vault_poc_v1"
         };
 
-        // seed defaults
-        function ensureDefaults() {
-            if (!Array.isArray(profile.addresses)) profile.addresses = [];
-            if (!Array.isArray(profile.taxes.years)) profile.taxes.years = [];
-            if (profile.taxes.years.length === 0) {
-                // default to last 5 calendar years from current year
-                const nowY = new Date().getFullYear();
-                const years = [nowY - 1, nowY - 2, nowY - 3, nowY - 4, nowY - 5];
-                profile.taxes.years = years.map(y => ({ year: y, filed: null, requiredIfNotFiled: null }));
+        // =========================
+        // STATE
+        // =========================
+        const state = loadState() || {
+            ui: { active: "addresses" },
+
+            // categories
+            addresses: [],
+            education: [],
+            employment: [],
+            travel: [],        // trips
+            passports: [],     // supports multiple passports/travel docs
+            ids: [],           // SSN/SIN entries
+            language: []       // language proof entries
+        };
+
+        function uid() {
+            return Math.random().toString(16).slice(2) + Date.now().toString(16);
+        }
+
+        // =========================
+        // STORAGE
+        // =========================
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(APP.storageKey);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === "object" ? parsed : null;
+            } catch { return null; }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(APP.storageKey, JSON.stringify(state));
+                setStorageBadge("Saved locally");
+            } catch {
+                setStorageBadge("Could not save locally");
             }
-            if (!profile.otherStatuses) profile.otherStatuses = { hasOtherStatuses: false, items: [] };
-            if (!Array.isArray(profile.otherStatuses.items)) profile.otherStatuses.items = [];
-            if (!profile.passports) profile.passports = { heldInEligibility: false, explanation: "", items: [] };
-            if (!Array.isArray(profile.passports.items)) profile.passports.items = [];
-            if (!Array.isArray(profile.activities)) profile.activities = [];
-            if (!profile.physicalPresence) profile.physicalPresence = { trips: [] };
-            if (!Array.isArray(profile.physicalPresence.trips)) profile.physicalPresence.trips = [];
-            if (!profile.prohibitions?.items?.length) {
-                // keep what we defined above
+        }
+
+        function setStorageBadge(text) {
+            document.getElementById("storageBadge").textContent = text;
+        }
+
+        function setStatus(msg) {
+            const box = document.getElementById("statusBox");
+            box.style.display = "block";
+            box.textContent = msg;
+            box.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function clearStatus() {
+            const box = document.getElementById("statusBox");
+            box.style.display = "none";
+            box.textContent = "";
+        }
+
+        // =========================
+        // HELPERS
+        // =========================
+        function parseDate(d) {
+            if (!d) return null;
+            const t = Date.parse(d + "T00:00:00");
+            return Number.isFinite(t) ? t : null;
+        }
+
+        function daysBetween(start, end) {
+            const s = parseDate(start), e = parseDate(end);
+            if (s === null || e === null) return null;
+            return Math.round((e - s) / (1000 * 60 * 60 * 24));
+        }
+
+        function escapeHtml(s) {
+            return (s ?? "").toString()
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function buildTable(headers, rows) {
+            const thead = `<thead><tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>`;
+            const tbody = `<tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>`;
+            return `<div class="tableWrap"><table>${thead}${tbody}</table></div>`;
+        }
+
+        function actionCell(id, category) {
+            return `<button class="btn" style="padding:6px 10px;" data-del="1" data-id="${escapeHtml(id)}" data-cat="${escapeHtml(category)}">Delete</button>`;
+        }
+
+        function deleteEntry(category, id) {
+            if (!Array.isArray(state[category])) return;
+            state[category] = state[category].filter(x => x.id !== id);
+            saveState();
+            render();
+            setStatus("Deleted.");
+        }
+
+        function computeOverlaps(items, startKey, endKey) {
+            // generic overlap check: requires both ends
+            const ranges = items
+                .map(x => ({ id: x.id, start: parseDate(x[startKey]), end: parseDate(x[endKey]) }))
+                .filter(r => r.start !== null && r.end !== null)
+                .sort((a, b) => a.start - b.start);
+
+            let overlaps = 0;
+            for (let i = 0; i < ranges.length - 1; i++) {
+                const a = ranges[i], b = ranges[i + 1];
+                if (b.start <= a.end) overlaps++;
             }
-        }
-        ensureDefaults();
-
-        /** ---------------------------
-         *  Render helpers (repeaters)
-         * --------------------------*/
-        function renderAddresses() {
-            const el = document.getElementById("addresses");
-            el.innerHTML = "";
-            profile.addresses.forEach((a, idx) => {
-                const wrap = document.createElement("div");
-                wrap.className = "card";
-                wrap.innerHTML = `
-          <div class="listItemHeader">
-            <strong>Address ${idx + 1}</strong>
-            <button class="danger" type="button" data-remove="${a.id}">Remove</button>
-          </div>
-          <div class="row">
-            <div><label>From</label><input type="date" data-k="from" value="${a.from || ""}"></div>
-            <div class="inline" style="align-items:flex-end;">
-              <input type="checkbox" data-k="isCurrent" ${a.isCurrent ? "checked" : ""}>
-              <label style="margin:0;">This is my current address</label>
-            </div>
-          </div>
-          <label>To</label>
-          <input type="date" data-k="to" value="${a.to || ""}" ${a.isCurrent ? "disabled" : ""}>
-
-          <div class="row3">
-            <div><label>Country/territory</label><input data-k="country" value="${a.country || ""}"></div>
-            <div><label>Apt/unit (optional)</label><input data-k="unit" value="${a.unit || ""}"></div>
-            <div><label>Street number (optional)</label><input data-k="streetNo" value="${a.streetNo || ""}"></div>
-          </div>
-          <div class="row">
-            <div><label>Street name</label><input data-k="streetName" value="${a.streetName || ""}"></div>
-            <div><label>City/town</label><input data-k="city" value="${a.city || ""}"></div>
-          </div>
-          <div class="row3">
-            <div><label>Province/State</label><input data-k="province" value="${a.province || ""}"></div>
-            <div><label>Postal/Zip</label><input data-k="postal" value="${a.postal || ""}"></div>
-            <div><label>District (optional)</label><input data-k="district" value="${a.district || ""}"></div>
-          </div>
-        `;
-                // wire inputs
-                wrap.querySelectorAll("input").forEach(inp => {
-                    const key = inp.getAttribute("data-k");
-                    if (!key) return;
-                    inp.addEventListener("change", () => {
-                        const rec = profile.addresses[idx];
-                        if (inp.type === "checkbox") rec[key] = inp.checked;
-                        else rec[key] = inp.value;
-                        if (key === "isCurrent") {
-                            if (rec.isCurrent) rec.to = "";
-                            renderAddresses();
-                        }
-                        validateAll();
-                    });
-                });
-                // remove
-                wrap.querySelector("button[data-remove]")?.addEventListener("click", () => {
-                    profile.addresses = profile.addresses.filter(x => x.id !== a.id);
-                    renderAddresses();
-                    validateAll();
-                });
-                el.appendChild(wrap);
-            });
+            return overlaps;
         }
 
-        function renderTaxYears() {
-            const el = document.getElementById("taxYears");
-            el.innerHTML = "";
-            profile.taxes.years.forEach((t, idx) => {
-                const row = document.createElement("div");
-                row.className = "card";
-                row.innerHTML = `
-          <div class="row3">
-            <div><label>Tax year</label><input value="${t.year}" disabled></div>
-            <div>
-              <label>Filed taxes?</label>
-              <select data-k="filed">
-                <option value="">Select…</option>
-                <option value="yes" ${t.filed === "yes" ? "selected" : ""}>Yes</option>
-                <option value="no" ${t.filed === "no" ? "selected" : ""}>No</option>
-              </select>
-            </div>
-            <div>
-              <label>Required to file (if not filed)</label>
-              <select data-k="requiredIfNotFiled" ${t.filed === "no" ? "" : "disabled"}>
-                <option value="">Select…</option>
-                <option value="yes" ${t.requiredIfNotFiled === "yes" ? "selected" : ""}>Yes</option>
-                <option value="no" ${t.requiredIfNotFiled === "no" ? "selected" : ""}>No</option>
-              </select>
-            </div>
-          </div>
-        `;
-                row.querySelectorAll("select").forEach(sel => {
-                    const k = sel.getAttribute("data-k");
-                    sel.addEventListener("change", () => {
-                        profile.taxes.years[idx][k] = sel.value || null;
-                        if (k === "filed" && sel.value !== "no") {
-                            profile.taxes.years[idx].requiredIfNotFiled = null;
-                        }
-                        renderTaxYears();
-                        validateAll();
-                    });
-                });
-                el.appendChild(row);
-            });
+        function computeGaps(items, startKey, endKey) {
+            const ranges = items
+                .map(x => ({ id: x.id, start: parseDate(x[startKey]), end: parseDate(x[endKey]) }))
+                .filter(r => r.start !== null && r.end !== null)
+                .sort((a, b) => a.start - b.start);
+
+            let gaps = 0;
+            for (let i = 0; i < ranges.length - 1; i++) {
+                const a = ranges[i], b = ranges[i + 1];
+                if (b.start > a.end) gaps++;
+            }
+            return gaps;
         }
 
-        function renderStatuses() {
-            const el = document.getElementById("statuses");
-            el.innerHTML = "";
-            profile.otherStatuses.items.forEach((s, idx) => {
-                const wrap = document.createElement("div");
-                wrap.className = "card";
-                wrap.innerHTML = `
-          <div class="listItemHeader">
-            <strong>Status ${idx + 1}</strong>
-            <button class="danger" type="button" data-remove="${s.id}">Remove</button>
-          </div>
-          <div class="row">
-            <div><label>Country/territory</label><input data-k="country" value="${s.country || ""}"></div>
-            <div><label>Status</label><input data-k="status" value="${s.status || ""}" placeholder="e.g., Citizen, PR, Work permit"></div>
-          </div>
-          <div class="row">
-            <div><label>Date obtained / effective date</label><input type="date" data-k="startDate" value="${s.startDate || ""}"></div>
-            <div><label>End date (optional)</label><input type="date" data-k="endDate" value="${s.endDate || ""}"></div>
-          </div>
-        `;
-                wrap.querySelectorAll("input").forEach(inp => {
-                    const k = inp.getAttribute("data-k");
-                    inp.addEventListener("change", () => {
-                        profile.otherStatuses.items[idx][k] = inp.value;
-                        validateAll();
-                    });
-                });
-                wrap.querySelector("button[data-remove]")?.addEventListener("click", () => {
-                    profile.otherStatuses.items = profile.otherStatuses.items.filter(x => x.id !== s.id);
-                    renderStatuses();
-                    validateAll();
-                });
-                el.appendChild(wrap);
-            });
-        }
-
-        function renderPassports() {
-            const el = document.getElementById("passports");
-            el.innerHTML = "";
-            profile.passports.items.forEach((p, idx) => {
-                const wrap = document.createElement("div");
-                wrap.className = "card";
-                wrap.innerHTML = `
-          <div class="listItemHeader">
-            <strong>Passport/Travel document ${idx + 1}</strong>
-            <button class="danger" type="button" data-remove="${p.id}">Remove</button>
-          </div>
-
-          <div class="row">
-            <div><label>Document number</label><input data-k="docNumber" value="${p.docNumber || ""}"></div>
-            <div><label>Country/territory of issue</label><input data-k="countryOfIssue" value="${p.countryOfIssue || ""}"></div>
-          </div>
-          <div class="row">
-            <div><label>Date issued</label><input type="date" data-k="issued" value="${p.issued || ""}"></div>
-            <div><label>Expiry date</label><input type="date" data-k="expiry" value="${p.expiry || ""}"></div>
-          </div>
-          <div class="row">
-            <div><label>Place of issue</label><input data-k="placeOfIssue" value="${p.placeOfIssue || ""}"></div>
-            <div class="inline" style="align-items:flex-end;">
-              <input type="checkbox" data-k="hasBioPage" ${p.hasBioPage ? "checked" : ""}>
-              <label style="margin:0;">Have the bio page?</label>
-            </div>
-          </div>
-          <label>Bio page upload filename (if applicable)</label>
-          <input data-k="bioPageFile" value="${p.bioPageFile || ""}" placeholder="e.g., Passport.pdf" ${p.hasBioPage ? "" : "disabled"}>
-        `;
-                wrap.querySelectorAll("input").forEach(inp => {
-                    const k = inp.getAttribute("data-k");
-                    if (!k) return;
-                    inp.addEventListener("change", () => {
-                        const rec = profile.passports.items[idx];
-                        if (inp.type === "checkbox") rec[k] = inp.checked;
-                        else rec[k] = inp.value;
-                        if (k === "hasBioPage" && !rec.hasBioPage) rec.bioPageFile = "";
-                        renderPassports();
-                        validateAll();
-                    });
-                });
-                wrap.querySelector("button[data-remove]")?.addEventListener("click", () => {
-                    profile.passports.items = profile.passports.items.filter(x => x.id !== p.id);
-                    renderPassports();
-                    validateAll();
-                });
-                el.appendChild(wrap);
-            });
-        }
-
-        function renderActivities() {
-            const el = document.getElementById("activities");
-            el.innerHTML = "";
-            profile.activities.forEach((a, idx) => {
-                const wrap = document.createElement("div");
-                wrap.className = "card";
-                wrap.innerHTML = `
-          <div class="listItemHeader">
-            <strong>Occupation / activity ${idx + 1}</strong>
-            <button class="danger" type="button" data-remove="${a.id}">Remove</button>
-          </div>
-          <div class="row">
-            <div><label>From</label><input type="date" data-k="from" value="${a.from || ""}"></div>
-            <div class="inline" style="align-items:flex-end;">
-              <input type="checkbox" data-k="isCurrent" ${a.isCurrent ? "checked" : ""}>
-              <label style="margin:0;">This is my current occupation/activity</label>
-            </div>
-          </div>
-          <label>To</label>
-          <input type="date" data-k="to" value="${a.to || ""}" ${a.isCurrent ? "disabled" : ""}>
-
-          <div class="row">
-            <div><label>Occupation or activity</label><input data-k="occupation" value="${a.occupation || ""}" placeholder="e.g., Technical Writer"></div>
-            <div><label>Employer / institution</label><input data-k="employer" value="${a.employer || ""}"></div>
-          </div>
-          <div class="row3">
-            <div><label>Country/territory</label><input data-k="country" value="${a.country || ""}"></div>
-            <div><label>Street number</label><input data-k="streetNo" value="${a.streetNo || ""}"></div>
-            <div><label>Street name</label><input data-k="streetName" value="${a.streetName || ""}"></div>
-          </div>
-          <div class="row3">
-            <div><label>City/town</label><input data-k="city" value="${a.city || ""}"></div>
-            <div><label>Province/State</label><input data-k="province" value="${a.province || ""}"></div>
-            <div><label>Notes (optional)</label><input data-k="notes" value="${a.notes || ""}"></div>
-          </div>
-        `;
-                wrap.querySelectorAll("input").forEach(inp => {
-                    const k = inp.getAttribute("data-k");
-                    inp.addEventListener("change", () => {
-                        const rec = profile.activities[idx];
-                        if (inp.type === "checkbox") rec[k] = inp.checked;
-                        else rec[k] = inp.value;
-                        if (k === "isCurrent" && rec.isCurrent) rec.to = "";
-                        renderActivities();
-                        validateAll();
-                    });
-                });
-                wrap.querySelector("button[data-remove]")?.addEventListener("click", () => {
-                    profile.activities = profile.activities.filter(x => x.id !== a.id);
-                    renderActivities();
-                    validateAll();
-                });
-                el.appendChild(wrap);
-            });
-        }
-
-        function renderTrips() {
-            const el = document.getElementById("trips");
-            el.innerHTML = "";
-            profile.physicalPresence.trips.forEach((t, idx) => {
-                const wrap = document.createElement("div");
-                wrap.className = "card";
-                wrap.innerHTML = `
-          <div class="listItemHeader">
-            <strong>Trip ${idx + 1} (outside Canada)</strong>
-            <button class="danger" type="button" data-remove="${t.id}">Remove</button>
-          </div>
-          <div class="row">
-            <div><label>Country</label><input data-k="country" value="${t.country || ""}"></div>
-            <div><label>Reason</label>
-              <select data-k="reason">
-                <option value="">Select…</option>
-                <option ${t.reason === "Tourism (such as a vacation)" ? "selected" : ""}>Tourism (such as a vacation)</option>
-                <option ${t.reason === "Visited a family member" ? "selected" : ""}>Visited a family member</option>
-                <option ${t.reason === "Business trip" ? "selected" : ""}>Business trip</option>
-                <option ${t.reason === "Work and travel (working holiday)" ? "selected" : ""}>Work and travel (working holiday)</option>
-                <option ${t.reason === "School" ? "selected" : ""}>School</option>
-                <option ${t.reason === "Illness" ? "selected" : ""}>Illness</option>
-                <option ${t.reason === "Other" ? "selected" : ""}>Other</option>
-              </select>
-            </div>
-          </div>
-          <div class="row">
-            <div><label>Date you left Canada</label><input type="date" data-k="leftDate" value="${t.leftDate || ""}"></div>
-            <div><label>Date you returned to Canada</label><input type="date" data-k="returnDate" value="${t.returnDate || ""}"></div>
-          </div>
-          <label>Description (optional; especially if reason = Other)</label>
-          <textarea data-k="description">${t.description || ""}</textarea>
-        `;
-                wrap.querySelectorAll("input,select,textarea").forEach(inp => {
-                    const k = inp.getAttribute("data-k");
-                    if (!k) return;
-                    inp.addEventListener("change", () => {
-                        profile.physicalPresence.trips[idx][k] = inp.value;
-                        validateAll();
-                    });
-                });
-                wrap.querySelector("button[data-remove]")?.addEventListener("click", () => {
-                    profile.physicalPresence.trips = profile.physicalPresence.trips.filter(x => x.id !== t.id);
-                    renderTrips();
-                    validateAll();
-                });
-                el.appendChild(wrap);
-            });
-        }
-
-        function renderProhibitions() {
-            const el = document.getElementById("prohibitions");
-            el.innerHTML = "";
-            profile.prohibitions.items.forEach((q, idx) => {
-                const row = document.createElement("div");
-                row.className = "inline";
-                row.innerHTML = `
-          <input type="checkbox" id="proh_${q.id}" ${q.value ? "checked" : ""} />
-          <label for="proh_${q.id}" style="margin:0;">${q.label}</label>
-        `;
-                row.querySelector("input").addEventListener("change", (e) => {
-                    profile.prohibitions.items[idx].value = e.target.checked;
-                    validateAll();
-                });
-                el.appendChild(row);
-            });
-        }
-
-        /** ---------------------------
-         *  Binding (non-repeater fields)
-         * --------------------------*/
-        const bindings = [
-            // about
-            ["serviceLanguage", ["about", "serviceLanguage"], "value"],
-            ["needsAccommodation", ["about", "needsAccommodation"], "checked"],
-            ["uci", ["about", "uci"], "value"],
-            ["familyName", ["about", "familyName"], "value"],
-            ["givenNames", ["about", "givenNames"], "value"],
-            ["changedNameSincePR", ["about", "changedNameSincePR"], "checked"],
-            ["usedOtherNames", ["about", "usedOtherNames"], "checked"],
-            ["otherNamesDetails", ["about", "otherNamesDetails"], "value"],
-            ["gender", ["about", "gender"], "value"],
-            ["changeGenderForApp", ["about", "changeGenderForApp"], "checked"],
-            ["heightCm", ["about", "heightCm"], "value"],
-            ["eyeColour", ["about", "eyeColour"], "value"],
-            ["dob", ["about", "dob"], "value"],
-            ["correctedDOBDocs", ["about", "correctedDOBDocs"], "checked"],
-            ["needCorrectDOBForApp", ["about", "needCorrectDOBForApp"], "checked"],
-            ["birthCity", ["about", "birthCity"], "value"],
-            ["birthCountry", ["about", "birthCountry"], "value"],
-            ["maritalStatus", ["about", "maritalStatus"], "value"],
-
-            // contact
-            ["email", ["contact", "email"], "value"],
-            ["homeCountry", ["contact", "homeAddress", "country"], "value"],
-            ["homeUnit", ["contact", "homeAddress", "unit"], "value"],
-            ["homeStreetNo", ["contact", "homeAddress", "streetNo"], "value"],
-            ["homeStreetName", ["contact", "homeAddress", "streetName"], "value"],
-            ["homeCity", ["contact", "homeAddress", "city"], "value"],
-            ["homeProvince", ["contact", "homeAddress", "province"], "value"],
-            ["homePostal", ["contact", "homeAddress", "postal"], "value"],
-            ["mailSameAsHome", ["contact", "homeAddress", "mailSameAsHome"], "checked"],
-
-            ["phoneRegion", ["contact", "phone", "region"], "value"],
-            ["phoneType", ["contact", "phone", "type"], "value"],
-            ["countryCode", ["contact", "phone", "countryCode"], "value"],
-            ["phoneNumber", ["contact", "phone", "number"], "value"],
-            ["phoneExt", ["contact", "phone", "ext"], "value"],
-            ["hasAltPhone", ["contact", "phone", "hasAltPhone"], "checked"],
-
-            ["hasHelper", ["contact", "hasHelper"], "checked"],
-            ["appointRep", ["contact", "appointRep"], "checked"],
-            ["repDetails", ["contact", "repDetails"], "value"],
-
-            // identification
-            ["citPhotoFile", ["identification", "citPhotoFile"], "value"],
-            ["photographerName", ["identification", "photographerName"], "value"],
-            ["photographerAddress", ["identification", "photographerAddress"], "value"],
-            ["photoTakenDate", ["identification", "photoTakenDate"], "value"],
-            ["prCardFile", ["identification", "prCardFile"], "value"],
-            ["driversLicenseFile", ["identification", "driversLicenseFile"], "value"],
-
-            // taxes
-            ["hasTaxId", ["taxes", "hasTaxId"], "checked"],
-            ["taxIdNumber", ["taxes", "taxIdNumber"], "value"],
-            ["craConsent", ["taxes", "craConsent"], "checked"],
-
-            // other statuses
-            ["hasOtherStatuses", ["otherStatuses", "hasOtherStatuses"], "checked"],
-
-            // passports section header fields
-            ["heldPassportsInEligibility", ["passports", "heldInEligibility"], "checked"],
-            ["passportExplanation", ["passports", "explanation"], "value"],
-
-            // physical presence
-            ["eligStart", ["physicalPresence", "eligStart"], "value"],
-            ["eligEnd", ["physicalPresence", "eligEnd"], "value"],
-            ["prDate", ["physicalPresence", "prDate"], "value"],
-            ["wasCrownServant", ["physicalPresence", "wasCrownServant"], "checked"],
-            ["wasCrownFamily", ["physicalPresence", "wasCrownFamily"], "checked"],
-            ["hadTempStatusBeforePR", ["physicalPresence", "hadTempStatusBeforePR"], "checked"],
-            ["hadProtectedStatusBeforePR", ["physicalPresence", "hadProtectedStatusBeforePR"], "checked"],
-            ["servedSentence", ["physicalPresence", "servedSentence"], "checked"],
-            ["leftCanada", ["physicalPresence", "leftCanada"], "checked"],
-
-            // prohibitions confirm
-            ["prohibitionsConfirm", ["prohibitions", "confirmRead"], "checked"],
-
-            // language proof
-            ["hasLanguageProof", ["languageProof", "hasProof"], "checked"],
-            ["languageProofType", ["languageProof", "proofType"], "value"],
-            ["languageProofFile", ["languageProof", "file"], "value"],
-
-            // consents + signature
-            ["consentMP", ["consents", "mpLetter"], "checked"],
-            ["consentElectors", ["consents", "electors"], "checked"],
-            ["consentQuebecElectors", ["consents", "quebecElectors"], "checked"],
-            ["certificateType", ["consents", "certificateType"], "value"],
-            ["optionalDocs", ["consents", "optionalDocs"], "value"],
-            ["feeReceiptFile", ["consents", "feeReceiptFile"], "value"],
-            ["signCity", ["consents", "signCity"], "value"],
-            ["signedOn", ["consents", "signedOn"], "value"],
+        // =========================
+        // UI: NAV
+        // =========================
+        const NAV = [
+            { key: "addresses", title: "Addresses", help: "Store your current address and past addresses. (Time window rules can be applied later via application templates.)" },
+            { key: "education", title: "Education history", help: "Add schools, programs, credentials, and dates." },
+            { key: "employment", title: "Employment history", help: "Add employers, roles, locations, and dates." },
+            { key: "travel", title: "Travel (countries/trips)", help: "Add trips with entry/exit dates. This can power presence calculations later." },
+            { key: "presence", title: "Physical presence calculator", help: "Basic estimator using travel entries. (This is a POC—rules vary by application.)" },
+            { key: "passports", title: "Passports & travel documents", help: "Add multiple passports/travel documents with issue/expiry dates. (Document upload later.)" },
+            { key: "ids", title: "SSN & SIN", help: "Store SSN/SIN carefully. We show a warning and require acknowledgement before saving." },
+            { key: "language", title: "Language proof", help: "Store language test details (type, score, date). (Document upload later.)" }
         ];
 
-        function setDeep(obj, path, value) {
-            let cur = obj;
-            for (let i = 0; i < path.length - 1; i++) cur = cur[path[i]];
-            cur[path[path.length - 1]] = value;
-        }
-        function getDeep(obj, path) {
-            let cur = obj;
-            for (const k of path) cur = cur[k];
-            return cur;
+        function setActive(key) {
+            state.ui.active = key;
+            saveState();
+            render();
+            clearStatus();
         }
 
-        function bindAll() {
-            bindings.forEach(([id, path, prop]) => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                // initial
-                el[prop] = getDeep(profile, path) ?? (prop === "checked" ? false : "");
-                // update
-                el.addEventListener("change", () => {
-                    setDeep(profile, path, el[prop]);
-                    // some toggles affect UI
-                    if (id === "usedOtherNames") {
-                        document.getElementById("otherNamesDetails").disabled = !el.checked;
-                        if (!el.checked) profile.about.otherNamesDetails = "";
-                    }
-                    if (id === "appointRep") {
-                        document.getElementById("repDetails").disabled = !el.checked;
-                        if (!el.checked) profile.contact.repDetails = "";
-                    }
-                    if (id === "hasOtherStatuses") {
-                        // show/hide is optional; leaving always visible is OK
-                    }
-                    validateAll();
-                });
-            });
+        document.getElementById("nav-addresses").addEventListener("click", () => setActive("addresses"));
+        document.getElementById("nav-education").addEventListener("click", () => setActive("education"));
+        document.getElementById("nav-employment").addEventListener("click", () => setActive("employment"));
+        document.getElementById("nav-travel").addEventListener("click", () => setActive("travel"));
+        document.getElementById("nav-presence").addEventListener("click", () => setActive("presence"));
+        document.getElementById("nav-passports").addEventListener("click", () => setActive("passports"));
+        document.getElementById("nav-ids").addEventListener("click", () => setActive("ids"));
+        document.getElementById("nav-language").addEventListener("click", () => setActive("language"));
 
-            // disable dependent fields on load
-            document.getElementById("otherNamesDetails").disabled = !profile.about.usedOtherNames;
-            document.getElementById("repDetails").disabled = !profile.contact.appointRep;
-        }
+        // =========================
+        // EXPORT / IMPORT / CLEAR
+        // =========================
+        document.getElementById("btnExport").addEventListener("click", () => {
+            const json = JSON.stringify({ ...state, exportedAt: new Date().toISOString(), app: APP.name }, null, 2);
+            downloadText("visa-vault-backup.json", json);
+            setStatus("Exported: visa-vault-backup.json");
+        });
 
-        /** ---------------------------
-         *  Validations
-         * --------------------------*/
-        function validatePassportsAgainstDOB() {
-            const dob = parseDate(profile.about.dob);
-            const errors = [];
-            profile.passports.items.forEach((p, idx) => {
-                const issue = parseDate(p.issued);
-                const exp = parseDate(p.expiry);
-
-                if (dob && issue && !isOnOrAfter(issue, dob)) {
-                    errors.push(`Passport ${idx + 1}: Issue date cannot be before date of birth.`);
-                }
-                if (issue && exp && !isAfter(exp, issue)) {
-                    errors.push(`Passport ${idx + 1}: Expiry date must be after issue date.`);
-                }
-                if (p.hasBioPage && !p.bioPageFile) {
-                    errors.push(`Passport ${idx + 1}: Bio page indicated as "Yes" but no filename provided.`);
-                }
-            });
-            return errors;
-        }
-
-        function validateDateRangeList(list, getFrom, getTo, label) {
-            const errors = [];
-            list.forEach((item, idx) => {
-                const a = parseDate(getFrom(item));
-                const b = parseDate(getTo(item));
-                if (a && b && !isOnOrAfter(b, a)) {
-                    errors.push(`${label} ${idx + 1}: End date must be on/after start date.`);
-                }
-            });
-            return errors;
-        }
-
-        function validateAddresses() {
-            const errors = [];
-            profile.addresses.forEach((a, idx) => {
-                const from = parseDate(a.from);
-                const to = a.isCurrent ? null : parseDate(a.to);
-                if (!a.from) errors.push(`Address ${idx + 1}: "From" date is required.`);
-                if (!a.isCurrent && !a.to) errors.push(`Address ${idx + 1}: "To" date is required unless current address.`);
-                if (from && to && !isOnOrAfter(to, from)) errors.push(`Address ${idx + 1}: "To" must be on/after "From".`);
-                if (!a.country || !a.city) errors.push(`Address ${idx + 1}: Country and City are recommended (often required on forms).`);
-            });
-            return errors;
-        }
-
-        function validateTripsWithinEligibility() {
-            const errors = [];
-            const es = parseDate(profile.physicalPresence.eligStart);
-            const ee = parseDate(profile.physicalPresence.eligEnd);
-
-            profile.physicalPresence.trips.forEach((t, idx) => {
-                const left = parseDate(t.leftDate);
-                const ret = parseDate(t.returnDate);
-                if (left && ret && !isOnOrAfter(ret, left)) {
-                    errors.push(`Trip ${idx + 1}: Return date must be on/after leave date.`);
-                }
-                if (es && left && left.getTime() < es.getTime()) {
-                    errors.push(`Trip ${idx + 1}: Leave date is before eligibility period start.`);
-                }
-                if (ee && ret && ret.getTime() > ee.getTime()) {
-                    errors.push(`Trip ${idx + 1}: Return date is after eligibility period end.`);
-                }
-            });
-            return errors;
-        }
-
-        function validateActivities() {
-            const errors = [];
-            profile.activities.forEach((a, idx) => {
-                const from = parseDate(a.from);
-                const to = a.isCurrent ? null : parseDate(a.to);
-                if (!a.from) errors.push(`Activity ${idx + 1}: "From" date is required.`);
-                if (!a.isCurrent && !a.to) errors.push(`Activity ${idx + 1}: "To" date is required unless current.`);
-                if (from && to && !isOnOrAfter(to, from)) errors.push(`Activity ${idx + 1}: "To" must be on/after "From".`);
-                if (!a.occupation) errors.push(`Activity ${idx + 1}: Occupation/activity is required.`);
-                if (!a.country) errors.push(`Activity ${idx + 1}: Country/territory is required.`);
-            });
-            return errors;
-        }
-
-        function validateProhibitions() {
-            const errors = [];
-            if (!profile.prohibitions.confirmRead) {
-                errors.push("Prohibitions: you must confirm you have read and understand the prohibitions.");
-            }
-            return errors;
-        }
-
-        function validateAll() {
-            const addrErrors = validateAddresses();
-            const passportErrors = validatePassportsAgainstDOB();
-            const tripErrors = validateTripsWithinEligibility();
-            const activityErrors = validateActivities();
-            const prohErrors = validateProhibitions();
-
-            document.getElementById("addrMsg").textContent = addrErrors.join(" ");
-            document.getElementById("passportMsg").textContent = passportErrors.join(" ");
-            document.getElementById("tripMsg").textContent = tripErrors.join(" ");
-            document.getElementById("activityMsg").textContent = activityErrors.join(" ");
-
-            // Global quick status
-            const all = [...addrErrors, ...passportErrors, ...tripErrors, ...activityErrors, ...prohErrors];
-            const gm = document.getElementById("globalMsg");
-            if (all.length) {
-                gm.className = "error";
-                gm.textContent = `Fix ${all.length} issue(s) before you export/submit: ` + all.slice(0, 4).join(" ") + (all.length > 4 ? " …" : "");
-            } else {
-                gm.className = "ok";
-                gm.textContent = "All checks look OK.";
-            }
-            return all;
-        }
-
-        /** ---------------------------
-         *  Persistence / import / export
-         * --------------------------*/
-        function saveLocal() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-        }
-        function loadLocal() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return;
-            const data = JSON.parse(raw);
-            profile = data;
-            ensureDefaults();
-        }
-        function downloadJson(filename, obj) {
-            const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+        function downloadText(filename, text) {
+            const blob = new Blob([text], { type: "application/json;charset=utf-8" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
             a.download = filename;
+            document.body.appendChild(a);
             a.click();
+            a.remove();
             URL.revokeObjectURL(url);
         }
 
-        /** ---------------------------
-         *  Init
-         * --------------------------*/
-        function init() {
-            loadLocal();
-            bindAll();
+        const importArea = document.getElementById("importArea");
+        const importText = document.getElementById("importText");
 
-            // render repeaters
-            renderAddresses();
-            renderTaxYears();
-            renderStatuses();
-            renderPassports();
-            renderActivities();
-            renderTrips();
-            renderProhibitions();
+        document.getElementById("btnImport").addEventListener("click", () => {
+            importArea.style.display = "block";
+            importText.value = "";
+            importText.focus();
+        });
 
-            // buttons
-            document.getElementById("btnSave").addEventListener("click", () => {
-                saveLocal();
-                validateAll();
+        document.getElementById("btnImportCancel").addEventListener("click", () => {
+            importArea.style.display = "none";
+            importText.value = "";
+        });
+
+        document.getElementById("btnImportApply").addEventListener("click", () => {
+            const raw = (importText.value || "").trim();
+            if (!raw) { setStatus("Paste a JSON backup first."); return; }
+
+            let parsed;
+            try { parsed = JSON.parse(raw); }
+            catch { setStatus("That doesn't look like valid JSON."); return; }
+
+            const looksOk = parsed && typeof parsed === "object" &&
+                parsed.ui && typeof parsed.ui === "object" &&
+                Array.isArray(parsed.addresses) &&
+                Array.isArray(parsed.education) &&
+                Array.isArray(parsed.employment) &&
+                Array.isArray(parsed.travel) &&
+                Array.isArray(parsed.passports) &&
+                Array.isArray(parsed.ids) &&
+                Array.isArray(parsed.language);
+
+            if (!looksOk) {
+                setStatus("JSON format not recognized. Export from this tool and try again.");
+                return;
+            }
+
+            const ok = confirm("Import will overwrite local data on this device. Continue?");
+            if (!ok) return;
+
+            // overwrite state fields (keep same object reference out of caution by assigning)
+            state.ui = parsed.ui || { active: "addresses" };
+            state.addresses = parsed.addresses.map(x => ({ ...x, id: x.id || uid() }));
+            state.education = parsed.education.map(x => ({ ...x, id: x.id || uid() }));
+            state.employment = parsed.employment.map(x => ({ ...x, id: x.id || uid() }));
+            state.travel = parsed.travel.map(x => ({ ...x, id: x.id || uid() }));
+            state.passports = parsed.passports.map(x => ({ ...x, id: x.id || uid() }));
+            state.ids = parsed.ids.map(x => ({ ...x, id: x.id || uid() }));
+            state.language = parsed.language.map(x => ({ ...x, id: x.id || uid() }));
+
+            importArea.style.display = "none";
+            saveState();
+            render();
+            setStatus("Imported successfully.");
+        });
+
+        document.getElementById("btnClearAll").addEventListener("click", () => {
+            const ok = confirm("This will delete all locally stored data for this POC on this device. Continue?");
+            if (!ok) return;
+            state.ui = { active: "addresses" };
+            state.addresses = [];
+            state.education = [];
+            state.employment = [];
+            state.travel = [];
+            state.passports = [];
+            state.ids = [];
+            state.language = [];
+            saveState();
+            render();
+            setStatus("Cleared.");
+        });
+
+        // =========================
+        // RENDERERS (FORMS + TABLES)
+        // =========================
+        function render() {
+            // nav highlight
+            const active = state.ui.active || "addresses";
+            const navIds = ["addresses", "education", "employment", "travel", "presence", "passports", "ids", "language"];
+            navIds.forEach(k => {
+                const el = document.getElementById("nav-" + k);
+                if (el) el.setAttribute("aria-current", (k === active) ? "true" : "false");
             });
 
-            document.getElementById("btnExport").addEventListener("click", () => {
-                const errs = validateAll();
-                if (errs.length) {
-                    alert("Please fix the highlighted issues before exporting.");
+            const meta = NAV.find(x => x.key === active) || NAV[0];
+            document.getElementById("screenTitle").textContent = meta.title;
+            document.getElementById("screenHelp").textContent = meta.help;
+
+            const panel = document.getElementById("panel");
+            panel.innerHTML = "";
+
+            // category switch
+            if (active === "addresses") renderAddresses(panel);
+            else if (active === "education") renderEducation(panel);
+            else if (active === "employment") renderEmployment(panel);
+            else if (active === "travel") renderTravel(panel);
+            else if (active === "presence") renderPresence(panel);
+            else if (active === "passports") renderPassports(panel);
+            else if (active === "ids") renderIDs(panel);
+            else if (active === "language") renderLanguage(panel);
+
+            // KPIs
+            const count = getActiveCount(active);
+            document.getElementById("kpiCount").textContent = String(count);
+
+            // quick checks per category
+            document.getElementById("kpiChecks").textContent = getQuickCheck(active);
+
+            saveState();
+        }
+
+        function getActiveCount(active) {
+            if (active === "presence") return state.travel.length;
+            const key = active;
+            if (Array.isArray(state[key])) return state[key].length;
+            return 0;
+        }
+
+        function getQuickCheck(active) {
+            if (active === "addresses") {
+                const overlaps = computeOverlaps(state.addresses, "fromDate", "toDate");
+                const gaps = computeGaps(state.addresses, "fromDate", "toDate");
+                if (!state.addresses.length) return "—";
+                if (overlaps) return `⚠️ overlaps: ${overlaps}`;
+                if (gaps) return `⚠️ gaps: ${gaps}`;
+                return "✅ ok";
+            }
+            if (active === "employment") {
+                const overlaps = computeOverlaps(state.employment, "fromDate", "toDate");
+                const gaps = computeGaps(state.employment, "fromDate", "toDate");
+                if (!state.employment.length) return "—";
+                if (overlaps) return `⚠️ overlaps: ${overlaps}`;
+                if (gaps) return `⚠️ gaps: ${gaps}`;
+                return "✅ ok";
+            }
+            if (active === "travel") {
+                const overlaps = computeOverlaps(state.travel, "entryDate", "exitDate");
+                if (!state.travel.length) return "—";
+                if (overlaps) return `⚠️ overlaps: ${overlaps}`;
+                return "✅ ok";
+            }
+            if (active === "passports") {
+                if (!state.passports.length) return "—";
+                // simple check: any expiry before issue
+                let bad = 0;
+                for (const p of state.passports) {
+                    const issue = parseDate(p.issueDate);
+                    const exp = parseDate(p.expiryDate);
+                    if (issue !== null && exp !== null && exp < issue) bad++;
+                }
+                if (bad) return `⚠️ check dates: ${bad}`;
+                return "✅ ok";
+            }
+            if (active === "ids") {
+                if (!state.ids.length) return "—";
+                return "⚠️ sensitive data";
+            }
+            if (active === "language") {
+                if (!state.language.length) return "—";
+                return "✅ ok";
+            }
+            if (active === "education") {
+                if (!state.education.length) return "—";
+                return "✅ ok";
+            }
+            if (active === "presence") {
+                if (!state.travel.length) return "—";
+                return "✅ calculated";
+            }
+            return "—";
+        }
+
+        function field(labelText, name, type, placeholder = "") {
+            const wrap = document.createElement("div");
+            const label = document.createElement("label");
+            label.htmlFor = name;
+            label.textContent = labelText;
+            const input = document.createElement("input");
+            input.id = name;
+            input.name = name;
+            input.type = type;
+            input.placeholder = placeholder;
+            wrap.appendChild(label);
+            wrap.appendChild(input);
+            return wrap;
+        }
+
+        function selectField(labelText, name, options) {
+            const wrap = document.createElement("div");
+            const label = document.createElement("label");
+            label.htmlFor = name;
+            label.textContent = labelText;
+            const sel = document.createElement("select");
+            sel.id = name;
+            sel.name = name;
+            for (const opt of options) {
+                const o = document.createElement("option");
+                o.value = opt.value;
+                o.textContent = opt.label;
+                sel.appendChild(o);
+            }
+            wrap.appendChild(label);
+            wrap.appendChild(sel);
+            return wrap;
+        }
+
+        function row(children) {
+            const r = document.createElement("div");
+            r.className = "row";
+            children.forEach(c => r.appendChild(c));
+            return r;
+        }
+
+        function addFormShell(panel, onSubmit) {
+            const form = document.createElement("form");
+            form.addEventListener("submit", (e) => {
+                e.preventDefault();
+                clearStatus();
+                onSubmit(new FormData(form), form);
+            });
+            panel.appendChild(form);
+            return form;
+        }
+
+        // =========================
+        // CATEGORY: ADDRESSES
+        // =========================
+        function renderAddresses(panel) {
+            const form = addFormShell(panel, (fd, formEl) => {
+                const addressLine1 = (fd.get("addressLine1") || "").toString().trim();
+                const city = (fd.get("city") || "").toString().trim();
+                const region = (fd.get("region") || "").toString().trim();
+                const country = (fd.get("country") || "").toString().trim();
+                const postal = (fd.get("postal") || "").toString().trim();
+                const fromDate = (fd.get("fromDate") || "").toString();
+                const toDate = (fd.get("toDate") || "").toString();
+
+                if (!addressLine1 || !city || !region || !country || !fromDate || !toDate) {
+                    setStatus("Please complete address, city, region, country, from date, and to date.");
                     return;
                 }
-                downloadJson("citizenship-profile.json", profile);
-            });
-
-            document.getElementById("btnClear").addEventListener("click", () => {
-                if (!confirm("Clear all data? This will erase local saved info.")) return;
-                localStorage.removeItem(STORAGE_KEY);
-                location.reload();
-            });
-
-            document.getElementById("importFile").addEventListener("change", async (e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                try {
-                    const text = await f.text();
-                    const data = JSON.parse(text);
-                    if (!data || typeof data !== "object") throw new Error("Invalid JSON.");
-                    profile = data;
-                    ensureDefaults();
-                    // re-bind + render
-                    location.reload(); // simplest reliable re-hydration
-                } catch (err) {
-                    alert("Import failed: " + err.message);
+                const s = parseDate(fromDate), t = parseDate(toDate);
+                if (s === null || t === null || t < s) {
+                    setStatus("To date must be the same as or after From date.");
+                    return;
                 }
+
+                state.addresses.push({
+                    id: uid(),
+                    addressLine1, city, region, country, postal,
+                    fromDate, toDate
+                });
+
+                formEl.reset();
+                saveState();
+                render();
+                setStatus("Saved address.");
             });
 
-            // add row buttons
-            document.getElementById("addAddress").addEventListener("click", () => {
-                profile.addresses.push({ id: uid(), from: "", to: "", isCurrent: false, country: "", unit: "", streetNo: "", streetName: "", city: "", province: "", postal: "", district: "" });
-                renderAddresses(); validateAll();
-            });
+            form.appendChild(row([
+                field("Address line 1", "addressLine1", "text", "Street + number"),
+                field("Postal code (optional)", "postal", "text")
+            ]));
+            form.appendChild(row([
+                field("City", "city", "text"),
+                field("Region/State/Province", "region", "text")
+            ]));
+            form.appendChild(row([
+                field("Country", "country", "text"),
+                field(" ", "_spacer", "text", "")
+            ]));
+            form.querySelector("#_spacer").closest("div").style.display = "none";
 
-            document.getElementById("addStatus").addEventListener("click", () => {
-                profile.otherStatuses.items.push({ id: uid(), country: "", status: "", startDate: "", endDate: "" });
-                renderStatuses(); validateAll();
-            });
+            form.appendChild(row([
+                field("From date", "fromDate", "date"),
+                field("To date", "toDate", "date")
+            ]));
 
-            document.getElementById("addPassport").addEventListener("click", () => {
-                profile.passports.items.push({ id: uid(), docNumber: "", countryOfIssue: "", placeOfIssue: "", issued: "", expiry: "", hasBioPage: false, bioPageFile: "" });
-                renderPassports(); validateAll();
-            });
+            const btns = document.createElement("div");
+            btns.className = "btnrow";
+            btns.innerHTML = `<button class="btn primary" type="submit">Add address</button>`;
+            form.appendChild(btns);
 
-            document.getElementById("addActivity").addEventListener("click", () => {
-                profile.activities.push({ id: uid(), from: "", to: "", isCurrent: false, occupation: "", employer: "", country: "", streetNo: "", streetName: "", city: "", province: "", notes: "" });
-                renderActivities(); validateAll();
-            });
-
-            document.getElementById("addTrip").addEventListener("click", () => {
-                profile.physicalPresence.trips.push({ id: uid(), country: "", leftDate: "", returnDate: "", reason: "", description: "" });
-                renderTrips(); validateAll();
-            });
-
-            // validate on load
-            validateAll();
+            // table
+            const headers = ["Address", "City", "Region", "Country", "Postal", "From", "To", ""];
+            const rows = state.addresses
+                .slice()
+                .sort((a, b) => (parseDate(a.fromDate) || 0) - (parseDate(b.fromDate) || 0))
+                .map(a => ([
+                    escapeHtml(a.addressLine1),
+                    escapeHtml(a.city),
+                    escapeHtml(a.region),
+                    escapeHtml(a.country),
+                    escapeHtml(a.postal || ""),
+                    escapeHtml(a.fromDate),
+                    escapeHtml(a.toDate),
+                    actionCell(a.id, "addresses")
+                ]));
+            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
+            wireDeletes(panel);
         }
-        init();
+
+        // =========================
+        // CATEGORY: EDUCATION
+        // =========================
+        function renderEducation(panel) {
+            const form = addFormShell(panel, (fd, formEl) => {
+                const institution = (fd.get("institution") || "").toString().trim();
+                const credential = (fd.get("credential") || "").toString().trim();
+                const location = (fd.get("location") || "").toString().trim();
+                const country = (fd.get("country") || "").toString().trim();
+                const fromDate = (fd.get("fromDate") || "").toString();
+                const toDate = (fd.get("toDate") || "").toString();
+
+                if (!institution || !credential || !country || !fromDate || !toDate) {
+                    setStatus("Please complete institution, credential, country, and dates.");
+                    return;
+                }
+                const s = parseDate(fromDate), t = parseDate(toDate);
+                if (s === null || t === null || t < s) {
+                    setStatus("To date must be the same as or after From date.");
+                    return;
+                }
+
+                state.education.push({ id: uid(), institution, credential, location, country, fromDate, toDate });
+                formEl.reset();
+                saveState();
+                render();
+                setStatus("Saved education entry.");
+            });
+
+            form.appendChild(field("Institution", "institution", "text", "School / college / university"));
+            form.appendChild(row([
+                field("Credential / Program", "credential", "text", "e.g., BA, MSc, Diploma"),
+                field("Location (optional)", "location", "text", "City/Region")
+            ]));
+            form.appendChild(row([
+                field("Country", "country", "text"),
+                field(" ", "_spacer2", "text", "")
+            ]));
+            form.querySelector("#_spacer2").closest("div").style.display = "none";
+
+            form.appendChild(row([
+                field("From date", "fromDate", "date"),
+                field("To date", "toDate", "date")
+            ]));
+
+            const btns = document.createElement("div");
+            btns.className = "btnrow";
+            btns.innerHTML = `<button class="btn primary" type="submit">Add education</button>`;
+            form.appendChild(btns);
+
+            const headers = ["Institution", "Credential", "Location", "Country", "From", "To", ""];
+            const rows = state.education
+                .slice()
+                .sort((a, b) => (parseDate(a.fromDate) || 0) - (parseDate(b.fromDate) || 0))
+                .map(e => ([
+                    escapeHtml(e.institution),
+                    escapeHtml(e.credential),
+                    escapeHtml(e.location || ""),
+                    escapeHtml(e.country),
+                    escapeHtml(e.fromDate),
+                    escapeHtml(e.toDate),
+                    actionCell(e.id, "education")
+                ]));
+            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
+            wireDeletes(panel);
+        }
+
+        // =========================
+        // CATEGORY: EMPLOYMENT
+        // =========================
+        function renderEmployment(panel) {
+            const form = addFormShell(panel, (fd, formEl) => {
+                const employer = (fd.get("employer") || "").toString().trim();
+                const title = (fd.get("title") || "").toString().trim();
+                const location = (fd.get("location") || "").toString().trim();
+                const country = (fd.get("country") || "").toString().trim();
+                const fromDate = (fd.get("fromDate") || "").toString();
+                const toDate = (fd.get("toDate") || "").toString();
+
+                if (!employer || !title || !country || !fromDate || !toDate) {
+                    setStatus("Please complete employer, job title, country, and dates.");
+                    return;
+                }
+                const s = parseDate(fromDate), t = parseDate(toDate);
+                if (s === null || t === null || t < s) {
+                    setStatus("To date must be the same as or after From date.");
+                    return;
+                }
+
+                state.employment.push({ id: uid(), employer, title, location, country, fromDate, toDate });
+                formEl.reset();
+                saveState();
+                render();
+                setStatus("Saved employment entry.");
+            });
+
+            form.appendChild(field("Employer", "employer", "text"));
+            form.appendChild(row([
+                field("Job title", "title", "text"),
+                field("Location (optional)", "location", "text", "City/Region")
+            ]));
+            form.appendChild(row([
+                field("Country", "country", "text"),
+                field(" ", "_spacer3", "text", "")
+            ]));
+            form.querySelector("#_spacer3").closest("div").style.display = "none";
+
+            form.appendChild(row([
+                field("From date", "fromDate", "date"),
+                field("To date", "toDate", "date")
+            ]));
+
+            const btns = document.createElement("div");
+            btns.className = "btnrow";
+            btns.innerHTML = `<button class="btn primary" type="submit">Add employment</button>`;
+            form.appendChild(btns);
+
+            const headers = ["Employer", "Title", "Location", "Country", "From", "To", ""];
+            const rows = state.employment
+                .slice()
+                .sort((a, b) => (parseDate(a.fromDate) || 0) - (parseDate(b.fromDate) || 0))
+                .map(j => ([
+                    escapeHtml(j.employer),
+                    escapeHtml(j.title),
+                    escapeHtml(j.location || ""),
+                    escapeHtml(j.country),
+                    escapeHtml(j.fromDate),
+                    escapeHtml(j.toDate),
+                    actionCell(j.id, "employment")
+                ]));
+            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
+            wireDeletes(panel);
+        }
+
+        // =========================
+        // CATEGORY: TRAVEL (TRIPS)
+        // =========================
+        function renderTravel(panel) {
+            const form = addFormShell(panel, (fd, formEl) => {
+                const country = (fd.get("country") || "").toString().trim();
+                const entryDate = (fd.get("entryDate") || "").toString();
+                const exitDate = (fd.get("exitDate") || "").toString();
+                const purpose = (fd.get("purpose") || "").toString().trim();
+
+                if (!country || !entryDate || !exitDate) {
+                    setStatus("Please complete country, entry date, and exit date.");
+                    return;
+                }
+                const s = parseDate(entryDate), t = parseDate(exitDate);
+                if (s === null || t === null || t < s) {
+                    setStatus("Exit date must be the same as or after Entry date.");
+                    return;
+                }
+
+                const days = daysBetween(entryDate, exitDate);
+                state.travel.push({ id: uid(), country, entryDate, exitDate, purpose, days });
+                formEl.reset();
+                saveState();
+                render();
+                setStatus("Saved trip.");
+            });
+
+            form.appendChild(row([
+                field("Country visited", "country", "text"),
+                field("Purpose (optional)", "purpose", "text", "e.g., tourism")
+            ]));
+            form.appendChild(row([
+                field("Entry date", "entryDate", "date"),
+                field("Exit date", "exitDate", "date")
+            ]));
+
+            const btns = document.createElement("div");
+            btns.className = "btnrow";
+            btns.innerHTML = `<button class="btn primary" type="submit">Add trip</button>`;
+            form.appendChild(btns);
+
+            const headers = ["Country", "Entry", "Exit", "Days", "Purpose", ""];
+            const rows = state.travel
+                .slice()
+                .sort((a, b) => (parseDate(a.entryDate) || 0) - (parseDate(b.entryDate) || 0))
+                .map(t => ([
+                    escapeHtml(t.country),
+                    escapeHtml(t.entryDate),
+                    escapeHtml(t.exitDate),
+                    escapeHtml(t.days ?? ""),
+                    escapeHtml(t.purpose || ""),
+                    actionCell(t.id, "travel")
+                ]));
+            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
+            wireDeletes(panel);
+        }
+
+        // =========================
+        // CATEGORY: PHYSICAL PRESENCE CALCULATOR (POC)
+        // =========================
+        function renderPresence(panel) {
+            // POC: user selects a window; we sum days outside (based on travel trips)
+            const box = document.createElement("div");
+            box.className = "card";
+            box.style.boxShadow = "none";
+
+            box.innerHTML = `
+            <div class="small muted">
+              This calculator is a <strong>basic estimator</strong>.
+              Real “physical presence” rules vary by program (citizenship, PR, etc.).
+            </div>
+            <div class="row" style="margin-top:10px;">
+              <div>
+                <label for="presenceFrom">Window start date</label>
+                <input id="presenceFrom" type="date" />
+              </div>
+              <div>
+                <label for="presenceTo">Window end date</label>
+                <input id="presenceTo" type="date" />
+              </div>
+            </div>
+            <div class="btnrow">
+              <button class="btn primary" id="btnCalcPresence" type="button">Calculate</button>
+            </div>
+            <div class="notice" id="presenceResult">Add travel trips to calculate time outside the window.</div>
+          `;
+
+            panel.appendChild(box);
+
+            const btn = box.querySelector("#btnCalcPresence");
+            btn.addEventListener("click", () => {
+                const from = box.querySelector("#presenceFrom").value;
+                const to = box.querySelector("#presenceTo").value;
+
+                const fromMs = parseDate(from);
+                const toMs = parseDate(to);
+
+                if (fromMs === null || toMs === null) {
+                    box.querySelector("#presenceResult").textContent = "Please choose a start and end date.";
+                    return;
+                }
+                if (toMs < fromMs) {
+                    box.querySelector("#presenceResult").textContent = "End date must be on/after start date.";
+                    return;
+                }
+
+                const windowDays = Math.round((toMs - fromMs) / (1000 * 60 * 60 * 24)) + 1;
+
+                // Calculate days outside within window (overlap of each trip with window)
+                let daysOutside = 0;
+                for (const trip of state.travel) {
+                    const s = parseDate(trip.entryDate);
+                    const e = parseDate(trip.exitDate);
+                    if (s === null || e === null) continue;
+
+                    const overlapStart = Math.max(s, fromMs);
+                    const overlapEnd = Math.min(e, toMs);
+                    if (overlapEnd >= overlapStart) {
+                        const overlapDays = Math.round((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
+                        daysOutside += overlapDays;
+                    }
+                }
+
+                const daysPresent = Math.max(0, windowDays - daysOutside);
+
+                box.querySelector("#presenceResult").textContent =
+                    `Window days: ${windowDays}\n` +
+                    `Estimated days outside (from travel trips): ${daysOutside}\n` +
+                    `Estimated days present: ${daysPresent}\n\n` +
+                    `Note: This assumes every travel entry represents time outside your country of residence. Adjust as needed for your application rules.`;
+            });
+        }
+
+        // =========================
+        // CATEGORY: PASSPORTS / TRAVEL DOCS (MULTIPLE)
+        // =========================
+        function renderPassports(panel) {
+            const form = addFormShell(panel, (fd, formEl) => {
+                const docType = (fd.get("docType") || "").toString();
+                const country = (fd.get("country") || "").toString().trim();
+                const number = (fd.get("number") || "").toString().trim();
+                const issueDate = (fd.get("issueDate") || "").toString();
+                const expiryDate = (fd.get("expiryDate") || "").toString();
+                const holderName = (fd.get("holderName") || "").toString().trim();
+
+                if (!docType || !country || !number || !issueDate || !expiryDate) {
+                    setStatus("Please complete doc type, country, number, and issue/expiry dates.");
+                    return;
+                }
+
+                const issue = parseDate(issueDate), exp = parseDate(expiryDate);
+                if (issue === null || exp === null || exp < issue) {
+                    setStatus("Expiry date must be the same as or after issue date.");
+                    return;
+                }
+
+                state.passports.push({ id: uid(), docType, country, number, issueDate, expiryDate, holderName });
+                formEl.reset();
+                saveState();
+                render();
+                setStatus("Saved travel document.");
+            });
+
+            form.appendChild(row([
+                selectField("Document type", "docType", [
+                    { value: "", label: "Select" },
+                    { value: "passport", label: "Passport" },
+                    { value: "travel-document", label: "Travel document" },
+                    { value: "refugee-travel-document", label: "Refugee travel document" },
+                    { value: "other", label: "Other" }
+                ]),
+                field("Issuing country", "country", "text")
+            ]));
+            form.appendChild(row([
+                field("Document number", "number", "text"),
+                field("Holder name (optional)", "holderName", "text", "As printed")
+            ]));
+            form.appendChild(row([
+                field("Issue date", "issueDate", "date"),
+                field("Expiry date", "expiryDate", "date")
+            ]));
+
+            const note = document.createElement("div");
+            note.className = "notice";
+            note.textContent = "Document uploads are not available in this POC. Future: attach scans/photos per document.";
+            form.appendChild(note);
+
+            const btns = document.createElement("div");
+            btns.className = "btnrow";
+            btns.innerHTML = `<button class="btn primary" type="submit">Add document</button>`;
+            form.appendChild(btns);
+
+            const headers = ["Type", "Country", "Number", "Issue", "Expiry", "Holder name", ""];
+            const rows = state.passports
+                .slice()
+                .sort((a, b) => (parseDate(a.issueDate) || 0) - (parseDate(b.issueDate) || 0))
+                .map(p => ([
+                    escapeHtml(p.docType),
+                    escapeHtml(p.country),
+                    escapeHtml(p.number),
+                    escapeHtml(p.issueDate),
+                    escapeHtml(p.expiryDate),
+                    escapeHtml(p.holderName || ""),
+                    actionCell(p.id, "passports")
+                ]));
+            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
+            wireDeletes(panel);
+        }
+
+        // =========================
+        // CATEGORY: SSN/SIN (WARNING + ACK REQUIRED)
+        // =========================
+        function renderIDs(panel) {
+            const warn = document.createElement("div");
+            warn.className = "inlineWarn";
+            warn.innerHTML = `
+            <div>
+              <strong>Warning: sensitive information</strong>
+              <div class="small muted">
+                SSN/SIN are highly sensitive. This POC stores data locally in your browser.
+                Use at your own risk and avoid shared/public computers.
+              </div>
+            </div>
+          `;
+            panel.appendChild(warn);
+
+            const form = addFormShell(panel, (fd, formEl) => {
+                const idType = (fd.get("idType") || "").toString();
+                const value = (fd.get("value") || "").toString().trim();
+                const notes = (fd.get("notes") || "").toString().trim();
+                const ack = (fd.get("ack") || "").toString();
+
+                if (!idType || !value) {
+                    setStatus("Please select SSN or SIN and enter a value.");
+                    return;
+                }
+                if (ack !== "yes") {
+                    setStatus("Please confirm you understand the sensitivity warning before saving.");
+                    return;
+                }
+
+                state.ids.push({ id: uid(), idType, value, notes, warningAcceptedAt: new Date().toISOString() });
+                formEl.reset();
+                saveState();
+                render();
+                setStatus("Saved ID entry.");
+            });
+
+            form.appendChild(row([
+                selectField("ID type", "idType", [
+                    { value: "", label: "Select" },
+                    { value: "SSN", label: "SSN (USA)" },
+                    { value: "SIN", label: "SIN (Canada)" }
+                ]),
+                field("Value", "value", "text", "Enter carefully")
+            ]));
+
+            const chk = document.createElement("div");
+            chk.className = "chkRow";
+            chk.innerHTML = `
+            <input type="checkbox" id="ack" name="ack" value="yes" />
+            <label for="ack" style="margin:0; font-weight:700;">
+              I understand this is sensitive and I should avoid shared/public devices.
+            </label>
+          `;
+            form.appendChild(chk);
+
+            const note = document.createElement("div");
+            note.className = "notice";
+            note.textContent = "Document uploads are not available in this POC. Future: attach scans/photos if needed.";
+            form.appendChild(note);
+
+            const notesField = document.createElement("div");
+            notesField.innerHTML = `
+            <label for="notes">Notes (optional)</label>
+            <textarea id="notes" name="notes" placeholder="e.g., where it’s stored, last updated..."></textarea>
+          `;
+            form.appendChild(notesField);
+
+            const btns = document.createElement("div");
+            btns.className = "btnrow";
+            btns.innerHTML = `<button class="btn primary" type="submit">Add SSN/SIN</button>`;
+            form.appendChild(btns);
+
+            // table (mask values in table)
+            const headers = ["Type", "Value (masked)", "Notes", "Saved", ""];
+            const rows = state.ids.map(x => {
+                const v = (x.value || "");
+                const masked = v.length <= 4 ? "••••" : "•••••••" + v.slice(-4);
+                return [
+                    escapeHtml(x.idType),
+                    escapeHtml(masked),
+                    escapeHtml(x.notes || ""),
+                    escapeHtml((x.warningAcceptedAt || "").slice(0, 10)),
+                    actionCell(x.id, "ids")
+                ];
+            });
+
+            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
+            wireDeletes(panel);
+        }
+
+        // =========================
+        // CATEGORY: LANGUAGE PROOF
+        // =========================
+        function renderLanguage(panel) {
+            const form = addFormShell(panel, (fd, formEl) => {
+                const testType = (fd.get("testType") || "").toString().trim();
+                const score = (fd.get("score") || "").toString().trim();
+                const testDate = (fd.get("testDate") || "").toString();
+                const expiryDate = (fd.get("expiryDate") || "").toString();
+                const notes = (fd.get("notes") || "").toString().trim();
+
+                if (!testType || !score || !testDate) {
+                    setStatus("Please complete test type, score, and test date.");
+                    return;
+                }
+                const t = parseDate(testDate);
+                const e = expiryDate ? parseDate(expiryDate) : null;
+                if (t === null) { setStatus("Please check the test date."); return; }
+                if (e !== null && e < t) { setStatus("Expiry date must be on/after test date."); return; }
+
+                state.language.push({ id: uid(), testType, score, testDate, expiryDate, notes });
+                formEl.reset();
+                saveState();
+                render();
+                setStatus("Saved language proof entry.");
+            });
+
+            form.appendChild(row([
+                field("Test type", "testType", "text", "e.g., IELTS, CELPIP, TEF"),
+                field("Score", "score", "text", "e.g., CLB 9, Overall 7.5")
+            ]));
+            form.appendChild(row([
+                field("Test date", "testDate", "date"),
+                field("Expiry date (optional)", "expiryDate", "date")
+            ]));
+
+            const note = document.createElement("div");
+            note.className = "notice";
+            note.textContent = "Document uploads are not available in this POC. Future: attach result PDF or certificate image.";
+            panel.appendChild(note);
+
+            const notesField = document.createElement("div");
+            notesField.innerHTML = `
+            <label for="notes">Notes (optional)</label>
+            <textarea id="notes" name="notes" placeholder="e.g., TRF number, test center, breakdown..."></textarea>
+          `;
+            panel.appendChild(notesField);
+
+            // Put notes inside form by moving the last appended element
+            // (We appended to panel for readability; move into form now)
+            form.appendChild(notesField);
+
+            const btns = document.createElement("div");
+            btns.className = "btnrow";
+            btns.innerHTML = `<button class="btn primary" type="submit">Add language proof</button>`;
+            form.appendChild(btns);
+
+            const headers = ["Test", "Score", "Test date", "Expiry", "Notes", ""];
+            const rows = state.language
+                .slice()
+                .sort((a, b) => (parseDate(a.testDate) || 0) - (parseDate(b.testDate) || 0))
+                .map(x => ([
+                    escapeHtml(x.testType),
+                    escapeHtml(x.score),
+                    escapeHtml(x.testDate),
+                    escapeHtml(x.expiryDate || ""),
+                    escapeHtml(x.notes || ""),
+                    actionCell(x.id, "language")
+                ]));
+            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
+            wireDeletes(panel);
+        }
+
+        function wireDeletes(panel) {
+            panel.querySelectorAll("[data-del]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const id = btn.getAttribute("data-id");
+                    const cat = btn.getAttribute("data-cat");
+                    deleteEntry(cat, id);
+                });
+            });
+        }
+
+        // =========================
+        // INIT
+        // =========================
+        if (!state.ui) state.ui = { active: "addresses" };
+        if (!state.ui.active) state.ui.active = "addresses";
+        saveState();
+        render();
     </script>
 </body>
 </html>
