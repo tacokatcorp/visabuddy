@@ -1,1386 +1,665 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Visa Vault POC — Local-first Application Organizer</title>
-    <meta name="description" content="Local-first application organizer POC: addresses, education, employment, travel, passports, SSN/SIN, language proof. Export/Import JSON." />
-    <style>
-        :root {
-            color-scheme: light dark;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Visa Buddy — Immigration Document Organizer</title>
+  <meta name="description" content="Securely organize your immigration documents and autofill applications." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-            margin: 0;
-            line-height: 1.45;
-        }
+    :root {
+      --sand-50: #FDFAF5;
+      --sand-100: #F5EFE0;
+      --sand-200: #E8DCC8;
+      --sand-300: #D4C4A8;
+      --sand-500: #9E8C70;
+      --sand-700: #5C4F38;
+      --sand-900: #2A2318;
+      --teal-400: #0D9488;
+      --teal-500: #0F766E;
+      --teal-600: #115E59;
+      --accent: #C84B2F;
+      --accent-light: #F5E8E4;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 2px 12px rgba(42,35,24,0.10);
+      --shadow-lg: 0 8px 40px rgba(42,35,24,0.14);
+    }
 
-        .wrap {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--sand-50);
+      color: var(--sand-900);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
 
-        .top {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+    h1, h2, h3 { font-family: 'DM Serif Display', serif; font-weight: 400; }
 
-        h1 {
-            font-size: 18px;
-            margin: 0;
-        }
+    /* ── AUTH PAGE ── */
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
 
-        .muted {
-            opacity: .82;
-        }
+    .auth-left {
+      background: var(--sand-900);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 56px 64px;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .pill {
-            border: 1px solid rgba(127,127,127,.35);
-            border-radius: 999px;
-            padding: 8px 12px;
-            font-size: 12px;
-            opacity: .9;
-        }
+    .auth-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 80%, rgba(13,148,136,0.18) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(200,75,47,0.12) 0%, transparent 50%);
+      pointer-events: none;
+    }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 14px;
-            margin-top: 14px;
-        }
+    .auth-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: var(--sand-50);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-        @media (max-width: 980px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
+    .auth-logo-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--teal-400);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
 
-        .card {
-            border: 1px solid rgba(127,127,127,.35);
-            border-radius: 18px;
-            padding: 14px;
-            background: rgba(127,127,127,.06);
-        }
+    .auth-hero h2 {
+      font-size: clamp(36px, 4vw, 52px);
+      color: var(--sand-50);
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
 
-        .navbtn {
-            width: 100%;
-            text-align: left;
-            border: 1px solid rgba(127,127,127,.30);
-            background: transparent;
-            border-radius: 14px;
-            padding: 10px 12px;
-            cursor: pointer;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
+    .auth-hero p {
+      color: var(--sand-300);
+      font-size: 16px;
+      max-width: 380px;
+      font-weight: 300;
+    }
 
-            .navbtn[aria-current="true"] {
-                background: rgba(127,127,127,.18);
-                border-color: rgba(127,127,127,.55);
-            }
+    .auth-features {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-        .small {
-            font-size: 12px;
-            opacity: .8;
-        }
+    .auth-feature {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--sand-200);
+      font-size: 14px;
+    }
 
-        .notice {
-            border-left: 4px solid rgba(127,127,127,.55);
-            padding: 10px 12px;
-            border-radius: 12px;
-            background: rgba(127,127,127,.08);
-            margin-top: 10px;
-            white-space: pre-wrap;
-        }
+    .auth-feature-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--teal-400);
+      flex-shrink: 0;
+    }
 
-        .row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
+    .auth-right {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      background: var(--sand-50);
+    }
 
-        @media (max-width: 700px) {
-            .row {
-                grid-template-columns: 1fr;
-            }
-        }
+    .auth-form-wrap {
+      width: 100%;
+      max-width: 400px;
+    }
 
-        label {
-            display: block;
-            font-weight: 700;
-            margin: 10px 0 6px;
-            font-size: 12px;
-        }
+    .auth-form-wrap h3 {
+      font-size: 30px;
+      margin-bottom: 8px;
+      color: var(--sand-900);
+    }
 
-        input, select, textarea {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(127,127,127,.45);
-            background: transparent;
-            font-size: 14px;
-        }
+    .auth-form-wrap .sub {
+      color: var(--sand-500);
+      margin-bottom: 36px;
+      font-size: 14px;
+    }
 
-        textarea {
-            min-height: 86px;
-            resize: vertical;
-        }
+    .auth-tabs {
+      display: flex;
+      background: var(--sand-100);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      margin-bottom: 28px;
+    }
 
-        .btnrow {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 12px;
-        }
+    .auth-tab {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--sand-500);
+      transition: all 0.18s;
+    }
 
-        .btn {
-            appearance: none;
-            border: 1px solid rgba(127,127,127,.45);
-            background: transparent;
-            border-radius: 999px;
-            padding: 10px 14px;
-            font-weight: 800;
-            cursor: pointer;
-        }
+    .auth-tab.active {
+      background: white;
+      color: var(--sand-900);
+      box-shadow: 0 1px 4px rgba(42,35,24,0.12);
+    }
 
-            .btn.primary {
-                background: rgba(127,127,127,.18);
-                border-color: rgba(127,127,127,.55);
-            }
+    .field { margin-bottom: 18px; }
 
-            .btn.danger {
-                border-color: rgba(220,80,80,.65);
-            }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--sand-700);
+      margin-bottom: 6px;
+    }
 
-        .tableWrap {
-            overflow: auto;
-            border-radius: 14px;
-            border: 1px solid rgba(127,127,127,.25);
-            background: rgba(127,127,127,.03);
-            margin-top: 10px;
-        }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--sand-200);
+      border-radius: var(--radius-sm);
+      background: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--sand-900);
+      transition: border-color 0.15s;
+      outline: none;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 860px;
-        }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--teal-400);
+    }
 
-        th, td {
-            padding: 10px;
-            border-bottom: 1px solid rgba(127,127,127,.18);
-            font-size: 13px;
-            text-align: left;
-            vertical-align: top;
-        }
+    .field textarea { min-height: 80px; resize: vertical; }
 
-        th {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            opacity: .75;
-        }
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: var(--sand-900);
+      color: var(--sand-50);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.1s;
+    }
 
-        .badge {
-            font-size: 12px;
-            border: 1px solid rgba(127,127,127,.35);
-            border-radius: 999px;
-            padding: 6px 10px;
-            opacity: .85;
-            display: inline-flex;
-        }
+    .btn-primary:hover { background: var(--sand-700); }
+    .btn-primary:active { transform: scale(0.99); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
 
-        .kpi {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 10px;
-        }
+    .error-msg {
+      color: var(--accent);
+      font-size: 13px;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      background: var(--accent-light);
+      border-radius: var(--radius-sm);
+    }
 
-        @media (max-width: 980px) {
-            .kpi {
-                grid-template-columns: 1fr;
-            }
-        }
+    .success-msg {
+      color: var(--teal-600);
+      font-size: 13px;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      background: #E0F2F1;
+      border-radius: var(--radius-sm);
+    }
 
-        .kpi .card {
-            padding: 12px;
-        }
+    /* ── APP SHELL ── */
+    .app-shell {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      min-height: 100vh;
+    }
 
-        .num {
-            font-weight: 900;
-            font-size: 20px;
-        }
+    .sidebar {
+      background: var(--sand-900);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 20px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
 
-        .actionsTop {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-        }
+    .sidebar-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--sand-50);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 36px;
+      padding: 0 8px;
+    }
 
-            .actionsTop .right {
-                display: flex;
-                gap: 8px;
-                flex-wrap: wrap;
-                align-items: center;
-            }
+    .sidebar-logo-icon {
+      width: 30px;
+      height: 30px;
+      background: var(--teal-400);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
 
-        .inlineWarn {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(220,80,80,.55);
-            background: rgba(220,80,80,.08);
-            margin-top: 10px;
-        }
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sand-500);
+      padding: 0 10px;
+      margin-bottom: 8px;
+      margin-top: 20px;
+    }
 
-            .inlineWarn strong {
-                display: block;
-                margin-bottom: 4px;
-            }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
 
-        .chkRow {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            margin-top: 10px;
-        }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--sand-300);
+      font-size: 14px;
+      font-weight: 400;
+      transition: all 0.15s;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      font-family: 'DM Sans', sans-serif;
+    }
 
-            .chkRow input {
-                width: auto;
-                margin-top: 3px;
-            }
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: var(--sand-100); }
 
-        code.inline {
-            padding: 2px 6px;
-            border: 1px solid rgba(127,127,127,.3);
-            border-radius: 8px;
-            background: rgba(127,127,127,.08);
-        }
-    </style>
+    .nav-item.active {
+      background: rgba(13,148,136,0.18);
+      color: #5EEAD4;
+      font-weight: 500;
+    }
+
+    .nav-icon { font-size: 16px; flex-shrink: 0; }
+
+    .nav-count {
+      margin-left: auto;
+      background: rgba(255,255,255,0.1);
+      color: var(--sand-400, #B8A88A);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    .nav-item.active .nav-count {
+      background: rgba(13,148,136,0.3);
+      color: #5EEAD4;
+    }
+
+    .sidebar-footer {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 16px;
+      margin-top: 16px;
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--teal-500);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .user-email {
+      font-size: 12px;
+      color: var(--sand-400, #B8A88A);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .logout-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--sand-500);
+      font-size: 13px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .logout-btn:hover { color: var(--sand-200); background: rgba(255,255,255,0.07); }
+
+    /* ── MAIN CONTENT ── */
+    .main-content {
+      padding: 40px 48px;
+      max-width: 900px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h2 {
+      font-size: 32px;
+      color: var(--sand-900);
+      margin-bottom: 4px;
+    }
+
+    .page-header p {
+      color: var(--sand-500);
+      font-size: 14px;
+    }
+
+    /* ── CARDS & TABLES ── */
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      border: 1px solid var(--sand-200);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: var(--sand-900);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+
+    .btn-add {
+      padding: 10px 20px;
+      background: var(--teal-400);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin-top: 4px;
+    }
+
+    .btn-add:hover { background: var(--teal-500); }
+    .btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-sm {
+      padding: 5px 12px;
+      border: 1px solid var(--sand-200);
+      background: white;
+      border-radius: 6px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--sand-700);
+      transition: all 0.15s;
+    }
+
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 13px;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--sand-500);
+      border-bottom: 1px solid var(--sand-100);
+    }
+
+    .data-table td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--sand-100);
+      color: var(--sand-700);
+      vertical-align: middle;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--sand-50); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--sand-500);
+      font-size: 14px;
+    }
+
+    .empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .badge-teal { background: #E0F2F1; color: var(--teal-600); }
+    .badge-amber { background: #FEF3C7; color: #92400E; }
+    .badge-red { background: var(--accent-light); color: var(--accent); }
+    .badge-gray { background: var(--sand-100); color: var(--sand-700); }
+
+    .warn-box {
+      border: 1px solid #FBBF24;
+      background: #FFFBEB;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #78350F;
+      margin-bottom: 16px;
+    }
+
+    .warn-box strong { font-weight: 600; }
+
+    .ack-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: var(--sand-700);
+    }
+
+    .ack-row input[type=checkbox] { margin-top: 2px; flex-shrink: 0; }
+
+    /* ── DASHBOARD ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: white;
+      border: 1px solid var(--sand-200);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .kpi-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 36px;
+      color: var(--sand-900);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .kpi-label { font-size: 12px; color: var(--sand-500); font-weight: 500; }
+
+    .dashboard-section {
+      background: white;
+      border: 1px solid var(--sand-200);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .dashboard-section h3 {
+      font-size: 16px;
+      color: var(--sand-900);
+      margin-bottom: 4px;
+    }
+
+    .dashboard-section .ds-sub {
+      font-size: 13px;
+      color: var(--sand-500);
+      margin-bottom: 16px;
+    }
+
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .progress-label { width: 130px; color: var(--sand-700); flex-shrink: 0; }
+
+    .progress-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: var(--sand-100);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--teal-400);
+      border-radius: 999px;
+      transition: width 0.5s ease;
+    }
+
+    .progress-count { color: var(--sand-500); font-size: 12px; min-width: 30px; text-align: right; }
+
+    /* ── LOADING ── */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--sand-200);
+      border-top-color: var(--teal-400);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-page {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      flex-direction: column;
+      gap: 14px;
+      color: var(--sand-500);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .auth-page { grid-template-columns: 1fr; }
+      .auth-left { display: none; }
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main-content { padding: 24px 20px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+      .form-row.three { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 500px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ── MASKED VALUE ── */
+    .masked { font-family: monospace; letter-spacing: 0.08em; }
+  </style>
 </head>
-
 <body>
-    <div class="wrap">
-        <div class="top">
-            <div>
-                <div class="badge">POC</div>
-                <h1>Visa Vault POC — Application Organizer</h1>
-                <div class="muted small" style="margin-top:6px;">
-                    Local-first. No accounts. No document uploads yet. Export/import via JSON.
-                </div>
-            </div>
-            <div class="pill" title="Privacy promise">🔒 Stored locally in your browser</div>
-        </div>
-
-        <div class="notice" style="margin-top:12px;">
-            <strong>Document storage is coming later.</strong>
-            For this proof of concept, we only collect structured inputs.
-            Future version: upload/store/download supporting documents per category.
-        </div>
-
-        <div class="grid">
-            <!-- LEFT NAV -->
-            <div class="card" aria-label="Categories">
-                <div class="small muted" style="margin-bottom:10px; font-weight:700;">Categories</div>
-
-                <button class="navbtn" id="nav-addresses" aria-current="true">Addresses</button>
-                <button class="navbtn" id="nav-education">Education history</button>
-                <button class="navbtn" id="nav-employment">Employment history</button>
-                <button class="navbtn" id="nav-travel">Travel (countries/trips)</button>
-                <button class="navbtn" id="nav-presence">Physical presence calculator</button>
-                <button class="navbtn" id="nav-passports">Passports & travel documents</button>
-                <button class="navbtn" id="nav-ids">SSN & SIN</button>
-                <button class="navbtn" id="nav-language">Language proof</button>
-
-                <div class="notice">
-                    <strong>Export/Import</strong>
-                    Use <code class="inline">Export</code> to download a JSON backup.
-                    Use <code class="inline">Import</code> to restore data on this device.
-                </div>
-
-                <div class="btnrow">
-                    <button class="btn primary" id="btnExport" type="button">Export</button>
-                    <button class="btn" id="btnImport" type="button">Import</button>
-                    <button class="btn danger" id="btnClearAll" type="button">Clear all</button>
-                </div>
-
-                <div class="notice" id="statusBox" style="display:none;" role="status" aria-live="polite"></div>
-            </div>
-
-            <!-- RIGHT PANEL -->
-            <div class="card" aria-label="Category detail">
-                <div class="actionsTop">
-                    <div>
-                        <div class="small muted" id="screenKicker">Category</div>
-                        <h2 id="screenTitle" style="margin:0; font-size:16px;">Addresses</h2>
-                        <div class="small muted" id="screenHelp" style="margin-top:6px;"></div>
-                    </div>
-                    <div class="right">
-                        <span class="badge" id="storageBadge">Saved locally</span>
-                    </div>
-                </div>
-
-                <div class="kpi">
-                    <div class="card" style="box-shadow:none;">
-                        <div class="num" id="kpiCount">0</div>
-                        <div class="small">Entries in this category</div>
-                    </div>
-                    <div class="card" style="box-shadow:none;">
-                        <div class="num" id="kpiChecks">—</div>
-                        <div class="small">Quick check</div>
-                    </div>
-                </div>
-
-                <div id="panel"></div>
-
-                <div class="notice" style="margin-top:14px;">
-                    <strong>Not legal advice.</strong>
-                    This tool organizes your information. You review and submit official applications yourself.
-                </div>
-            </div>
-        </div>
-
-        <!-- IMPORT MODAL (inline area) -->
-        <div class="card" id="importArea" style="display:none; margin-top:14px;">
-            <div style="font-weight:900; margin-bottom:8px;">Import JSON backup</div>
-            <div class="small muted">Paste the contents of your exported JSON file here. Import overwrites local data on this device.</div>
-            <textarea id="importText" placeholder='Paste exported JSON here...'></textarea>
-            <div class="btnrow">
-                <button class="btn primary" id="btnImportApply" type="button">Import now</button>
-                <button class="btn" id="btnImportCancel" type="button">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // =========================
-        // CONFIG
-        // =========================
-        const APP = {
-            name: "Visa Vault POC",
-            storageKey: "visa_vault_poc_v1"
-        };
-
-        // =========================
-        // STATE
-        // =========================
-        const state = loadState() || {
-            ui: { active: "addresses" },
-
-            // categories
-            addresses: [],
-            education: [],
-            employment: [],
-            travel: [],        // trips
-            passports: [],     // supports multiple passports/travel docs
-            ids: [],           // SSN/SIN entries
-            language: []       // language proof entries
-        };
-
-        function uid() {
-            return Math.random().toString(16).slice(2) + Date.now().toString(16);
-        }
-
-        // =========================
-        // STORAGE
-        // =========================
-        function loadState() {
-            try {
-                const raw = localStorage.getItem(APP.storageKey);
-                if (!raw) return null;
-                const parsed = JSON.parse(raw);
-                return parsed && typeof parsed === "object" ? parsed : null;
-            } catch { return null; }
-        }
-
-        function saveState() {
-            try {
-                localStorage.setItem(APP.storageKey, JSON.stringify(state));
-                setStorageBadge("Saved locally");
-            } catch {
-                setStorageBadge("Could not save locally");
-            }
-        }
-
-        function setStorageBadge(text) {
-            document.getElementById("storageBadge").textContent = text;
-        }
-
-        function setStatus(msg) {
-            const box = document.getElementById("statusBox");
-            box.style.display = "block";
-            box.textContent = msg;
-            box.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-
-        function clearStatus() {
-            const box = document.getElementById("statusBox");
-            box.style.display = "none";
-            box.textContent = "";
-        }
-
-        // =========================
-        // HELPERS
-        // =========================
-        function parseDate(d) {
-            if (!d) return null;
-            const t = Date.parse(d + "T00:00:00");
-            return Number.isFinite(t) ? t : null;
-        }
-
-        function daysBetween(start, end) {
-            const s = parseDate(start), e = parseDate(end);
-            if (s === null || e === null) return null;
-            return Math.round((e - s) / (1000 * 60 * 60 * 24));
-        }
-
-        function escapeHtml(s) {
-            return (s ?? "").toString()
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;")
-                .replaceAll("'", "&#039;");
-        }
-
-        function buildTable(headers, rows) {
-            const thead = `<thead><tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>`;
-            const tbody = `<tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>`;
-            return `<div class="tableWrap"><table>${thead}${tbody}</table></div>`;
-        }
-
-        function actionCell(id, category) {
-            return `<button class="btn" style="padding:6px 10px;" data-del="1" data-id="${escapeHtml(id)}" data-cat="${escapeHtml(category)}">Delete</button>`;
-        }
-
-        function deleteEntry(category, id) {
-            if (!Array.isArray(state[category])) return;
-            state[category] = state[category].filter(x => x.id !== id);
-            saveState();
-            render();
-            setStatus("Deleted.");
-        }
-
-        function computeOverlaps(items, startKey, endKey) {
-            // generic overlap check: requires both ends
-            const ranges = items
-                .map(x => ({ id: x.id, start: parseDate(x[startKey]), end: parseDate(x[endKey]) }))
-                .filter(r => r.start !== null && r.end !== null)
-                .sort((a, b) => a.start - b.start);
-
-            let overlaps = 0;
-            for (let i = 0; i < ranges.length - 1; i++) {
-                const a = ranges[i], b = ranges[i + 1];
-                if (b.start <= a.end) overlaps++;
-            }
-            return overlaps;
-        }
-
-        function computeGaps(items, startKey, endKey) {
-            const ranges = items
-                .map(x => ({ id: x.id, start: parseDate(x[startKey]), end: parseDate(x[endKey]) }))
-                .filter(r => r.start !== null && r.end !== null)
-                .sort((a, b) => a.start - b.start);
-
-            let gaps = 0;
-            for (let i = 0; i < ranges.length - 1; i++) {
-                const a = ranges[i], b = ranges[i + 1];
-                if (b.start > a.end) gaps++;
-            }
-            return gaps;
-        }
-
-        // =========================
-        // UI: NAV
-        // =========================
-        const NAV = [
-            { key: "addresses", title: "Addresses", help: "Store your current address and past addresses. (Time window rules can be applied later via application templates.)" },
-            { key: "education", title: "Education history", help: "Add schools, programs, credentials, and dates." },
-            { key: "employment", title: "Employment history", help: "Add employers, roles, locations, and dates." },
-            { key: "travel", title: "Travel (countries/trips)", help: "Add trips with entry/exit dates. This can power presence calculations later." },
-            { key: "presence", title: "Physical presence calculator", help: "Basic estimator using travel entries. (This is a POC—rules vary by application.)" },
-            { key: "passports", title: "Passports & travel documents", help: "Add multiple passports/travel documents with issue/expiry dates. (Document upload later.)" },
-            { key: "ids", title: "SSN & SIN", help: "Store SSN/SIN carefully. We show a warning and require acknowledgement before saving." },
-            { key: "language", title: "Language proof", help: "Store language test details (type, score, date). (Document upload later.)" }
-        ];
-
-        function setActive(key) {
-            state.ui.active = key;
-            saveState();
-            render();
-            clearStatus();
-        }
-
-        document.getElementById("nav-addresses").addEventListener("click", () => setActive("addresses"));
-        document.getElementById("nav-education").addEventListener("click", () => setActive("education"));
-        document.getElementById("nav-employment").addEventListener("click", () => setActive("employment"));
-        document.getElementById("nav-travel").addEventListener("click", () => setActive("travel"));
-        document.getElementById("nav-presence").addEventListener("click", () => setActive("presence"));
-        document.getElementById("nav-passports").addEventListener("click", () => setActive("passports"));
-        document.getElementById("nav-ids").addEventListener("click", () => setActive("ids"));
-        document.getElementById("nav-language").addEventListener("click", () => setActive("language"));
-
-        // =========================
-        // EXPORT / IMPORT / CLEAR
-        // =========================
-        document.getElementById("btnExport").addEventListener("click", () => {
-            const json = JSON.stringify({ ...state, exportedAt: new Date().toISOString(), app: APP.name }, null, 2);
-            downloadText("visa-vault-backup.json", json);
-            setStatus("Exported: visa-vault-backup.json");
-        });
-
-        function downloadText(filename, text) {
-            const blob = new Blob([text], { type: "application/json;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-        }
-
-        const importArea = document.getElementById("importArea");
-        const importText = document.getElementById("importText");
-
-        document.getElementById("btnImport").addEventListener("click", () => {
-            importArea.style.display = "block";
-            importText.value = "";
-            importText.focus();
-        });
-
-        document.getElementById("btnImportCancel").addEventListener("click", () => {
-            importArea.style.display = "none";
-            importText.value = "";
-        });
-
-        document.getElementById("btnImportApply").addEventListener("click", () => {
-            const raw = (importText.value || "").trim();
-            if (!raw) { setStatus("Paste a JSON backup first."); return; }
-
-            let parsed;
-            try { parsed = JSON.parse(raw); }
-            catch { setStatus("That doesn't look like valid JSON."); return; }
-
-            const looksOk = parsed && typeof parsed === "object" &&
-                parsed.ui && typeof parsed.ui === "object" &&
-                Array.isArray(parsed.addresses) &&
-                Array.isArray(parsed.education) &&
-                Array.isArray(parsed.employment) &&
-                Array.isArray(parsed.travel) &&
-                Array.isArray(parsed.passports) &&
-                Array.isArray(parsed.ids) &&
-                Array.isArray(parsed.language);
-
-            if (!looksOk) {
-                setStatus("JSON format not recognized. Export from this tool and try again.");
-                return;
-            }
-
-            const ok = confirm("Import will overwrite local data on this device. Continue?");
-            if (!ok) return;
-
-            // overwrite state fields (keep same object reference out of caution by assigning)
-            state.ui = parsed.ui || { active: "addresses" };
-            state.addresses = parsed.addresses.map(x => ({ ...x, id: x.id || uid() }));
-            state.education = parsed.education.map(x => ({ ...x, id: x.id || uid() }));
-            state.employment = parsed.employment.map(x => ({ ...x, id: x.id || uid() }));
-            state.travel = parsed.travel.map(x => ({ ...x, id: x.id || uid() }));
-            state.passports = parsed.passports.map(x => ({ ...x, id: x.id || uid() }));
-            state.ids = parsed.ids.map(x => ({ ...x, id: x.id || uid() }));
-            state.language = parsed.language.map(x => ({ ...x, id: x.id || uid() }));
-
-            importArea.style.display = "none";
-            saveState();
-            render();
-            setStatus("Imported successfully.");
-        });
-
-        document.getElementById("btnClearAll").addEventListener("click", () => {
-            const ok = confirm("This will delete all locally stored data for this POC on this device. Continue?");
-            if (!ok) return;
-            state.ui = { active: "addresses" };
-            state.addresses = [];
-            state.education = [];
-            state.employment = [];
-            state.travel = [];
-            state.passports = [];
-            state.ids = [];
-            state.language = [];
-            saveState();
-            render();
-            setStatus("Cleared.");
-        });
-
-        // =========================
-        // RENDERERS (FORMS + TABLES)
-        // =========================
-        function render() {
-            // nav highlight
-            const active = state.ui.active || "addresses";
-            const navIds = ["addresses", "education", "employment", "travel", "presence", "passports", "ids", "language"];
-            navIds.forEach(k => {
-                const el = document.getElementById("nav-" + k);
-                if (el) el.setAttribute("aria-current", (k === active) ? "true" : "false");
-            });
-
-            const meta = NAV.find(x => x.key === active) || NAV[0];
-            document.getElementById("screenTitle").textContent = meta.title;
-            document.getElementById("screenHelp").textContent = meta.help;
-
-            const panel = document.getElementById("panel");
-            panel.innerHTML = "";
-
-            // category switch
-            if (active === "addresses") renderAddresses(panel);
-            else if (active === "education") renderEducation(panel);
-            else if (active === "employment") renderEmployment(panel);
-            else if (active === "travel") renderTravel(panel);
-            else if (active === "presence") renderPresence(panel);
-            else if (active === "passports") renderPassports(panel);
-            else if (active === "ids") renderIDs(panel);
-            else if (active === "language") renderLanguage(panel);
-
-            // KPIs
-            const count = getActiveCount(active);
-            document.getElementById("kpiCount").textContent = String(count);
-
-            // quick checks per category
-            document.getElementById("kpiChecks").textContent = getQuickCheck(active);
-
-            saveState();
-        }
-
-        function getActiveCount(active) {
-            if (active === "presence") return state.travel.length;
-            const key = active;
-            if (Array.isArray(state[key])) return state[key].length;
-            return 0;
-        }
-
-        function getQuickCheck(active) {
-            if (active === "addresses") {
-                const overlaps = computeOverlaps(state.addresses, "fromDate", "toDate");
-                const gaps = computeGaps(state.addresses, "fromDate", "toDate");
-                if (!state.addresses.length) return "—";
-                if (overlaps) return `⚠️ overlaps: ${overlaps}`;
-                if (gaps) return `⚠️ gaps: ${gaps}`;
-                return "✅ ok";
-            }
-            if (active === "employment") {
-                const overlaps = computeOverlaps(state.employment, "fromDate", "toDate");
-                const gaps = computeGaps(state.employment, "fromDate", "toDate");
-                if (!state.employment.length) return "—";
-                if (overlaps) return `⚠️ overlaps: ${overlaps}`;
-                if (gaps) return `⚠️ gaps: ${gaps}`;
-                return "✅ ok";
-            }
-            if (active === "travel") {
-                const overlaps = computeOverlaps(state.travel, "entryDate", "exitDate");
-                if (!state.travel.length) return "—";
-                if (overlaps) return `⚠️ overlaps: ${overlaps}`;
-                return "✅ ok";
-            }
-            if (active === "passports") {
-                if (!state.passports.length) return "—";
-                // simple check: any expiry before issue
-                let bad = 0;
-                for (const p of state.passports) {
-                    const issue = parseDate(p.issueDate);
-                    const exp = parseDate(p.expiryDate);
-                    if (issue !== null && exp !== null && exp < issue) bad++;
-                }
-                if (bad) return `⚠️ check dates: ${bad}`;
-                return "✅ ok";
-            }
-            if (active === "ids") {
-                if (!state.ids.length) return "—";
-                return "⚠️ sensitive data";
-            }
-            if (active === "language") {
-                if (!state.language.length) return "—";
-                return "✅ ok";
-            }
-            if (active === "education") {
-                if (!state.education.length) return "—";
-                return "✅ ok";
-            }
-            if (active === "presence") {
-                if (!state.travel.length) return "—";
-                return "✅ calculated";
-            }
-            return "—";
-        }
-
-        function field(labelText, name, type, placeholder = "") {
-            const wrap = document.createElement("div");
-            const label = document.createElement("label");
-            label.htmlFor = name;
-            label.textContent = labelText;
-            const input = document.createElement("input");
-            input.id = name;
-            input.name = name;
-            input.type = type;
-            input.placeholder = placeholder;
-            wrap.appendChild(label);
-            wrap.appendChild(input);
-            return wrap;
-        }
-
-        function selectField(labelText, name, options) {
-            const wrap = document.createElement("div");
-            const label = document.createElement("label");
-            label.htmlFor = name;
-            label.textContent = labelText;
-            const sel = document.createElement("select");
-            sel.id = name;
-            sel.name = name;
-            for (const opt of options) {
-                const o = document.createElement("option");
-                o.value = opt.value;
-                o.textContent = opt.label;
-                sel.appendChild(o);
-            }
-            wrap.appendChild(label);
-            wrap.appendChild(sel);
-            return wrap;
-        }
-
-        function row(children) {
-            const r = document.createElement("div");
-            r.className = "row";
-            children.forEach(c => r.appendChild(c));
-            return r;
-        }
-
-        function addFormShell(panel, onSubmit) {
-            const form = document.createElement("form");
-            form.addEventListener("submit", (e) => {
-                e.preventDefault();
-                clearStatus();
-                onSubmit(new FormData(form), form);
-            });
-            panel.appendChild(form);
-            return form;
-        }
-
-        // =========================
-        // CATEGORY: ADDRESSES
-        // =========================
-        function renderAddresses(panel) {
-            const form = addFormShell(panel, (fd, formEl) => {
-                const addressLine1 = (fd.get("addressLine1") || "").toString().trim();
-                const city = (fd.get("city") || "").toString().trim();
-                const region = (fd.get("region") || "").toString().trim();
-                const country = (fd.get("country") || "").toString().trim();
-                const postal = (fd.get("postal") || "").toString().trim();
-                const fromDate = (fd.get("fromDate") || "").toString();
-                const toDate = (fd.get("toDate") || "").toString();
-
-                if (!addressLine1 || !city || !region || !country || !fromDate || !toDate) {
-                    setStatus("Please complete address, city, region, country, from date, and to date.");
-                    return;
-                }
-                const s = parseDate(fromDate), t = parseDate(toDate);
-                if (s === null || t === null || t < s) {
-                    setStatus("To date must be the same as or after From date.");
-                    return;
-                }
-
-                state.addresses.push({
-                    id: uid(),
-                    addressLine1, city, region, country, postal,
-                    fromDate, toDate
-                });
-
-                formEl.reset();
-                saveState();
-                render();
-                setStatus("Saved address.");
-            });
-
-            form.appendChild(row([
-                field("Address line 1", "addressLine1", "text", "Street + number"),
-                field("Postal code (optional)", "postal", "text")
-            ]));
-            form.appendChild(row([
-                field("City", "city", "text"),
-                field("Region/State/Province", "region", "text")
-            ]));
-            form.appendChild(row([
-                field("Country", "country", "text"),
-                field(" ", "_spacer", "text", "")
-            ]));
-            form.querySelector("#_spacer").closest("div").style.display = "none";
-
-            form.appendChild(row([
-                field("From date", "fromDate", "date"),
-                field("To date", "toDate", "date")
-            ]));
-
-            const btns = document.createElement("div");
-            btns.className = "btnrow";
-            btns.innerHTML = `<button class="btn primary" type="submit">Add address</button>`;
-            form.appendChild(btns);
-
-            // table
-            const headers = ["Address", "City", "Region", "Country", "Postal", "From", "To", ""];
-            const rows = state.addresses
-                .slice()
-                .sort((a, b) => (parseDate(a.fromDate) || 0) - (parseDate(b.fromDate) || 0))
-                .map(a => ([
-                    escapeHtml(a.addressLine1),
-                    escapeHtml(a.city),
-                    escapeHtml(a.region),
-                    escapeHtml(a.country),
-                    escapeHtml(a.postal || ""),
-                    escapeHtml(a.fromDate),
-                    escapeHtml(a.toDate),
-                    actionCell(a.id, "addresses")
-                ]));
-            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
-            wireDeletes(panel);
-        }
-
-        // =========================
-        // CATEGORY: EDUCATION
-        // =========================
-        function renderEducation(panel) {
-            const form = addFormShell(panel, (fd, formEl) => {
-                const institution = (fd.get("institution") || "").toString().trim();
-                const credential = (fd.get("credential") || "").toString().trim();
-                const location = (fd.get("location") || "").toString().trim();
-                const country = (fd.get("country") || "").toString().trim();
-                const fromDate = (fd.get("fromDate") || "").toString();
-                const toDate = (fd.get("toDate") || "").toString();
-
-                if (!institution || !credential || !country || !fromDate || !toDate) {
-                    setStatus("Please complete institution, credential, country, and dates.");
-                    return;
-                }
-                const s = parseDate(fromDate), t = parseDate(toDate);
-                if (s === null || t === null || t < s) {
-                    setStatus("To date must be the same as or after From date.");
-                    return;
-                }
-
-                state.education.push({ id: uid(), institution, credential, location, country, fromDate, toDate });
-                formEl.reset();
-                saveState();
-                render();
-                setStatus("Saved education entry.");
-            });
-
-            form.appendChild(field("Institution", "institution", "text", "School / college / university"));
-            form.appendChild(row([
-                field("Credential / Program", "credential", "text", "e.g., BA, MSc, Diploma"),
-                field("Location (optional)", "location", "text", "City/Region")
-            ]));
-            form.appendChild(row([
-                field("Country", "country", "text"),
-                field(" ", "_spacer2", "text", "")
-            ]));
-            form.querySelector("#_spacer2").closest("div").style.display = "none";
-
-            form.appendChild(row([
-                field("From date", "fromDate", "date"),
-                field("To date", "toDate", "date")
-            ]));
-
-            const btns = document.createElement("div");
-            btns.className = "btnrow";
-            btns.innerHTML = `<button class="btn primary" type="submit">Add education</button>`;
-            form.appendChild(btns);
-
-            const headers = ["Institution", "Credential", "Location", "Country", "From", "To", ""];
-            const rows = state.education
-                .slice()
-                .sort((a, b) => (parseDate(a.fromDate) || 0) - (parseDate(b.fromDate) || 0))
-                .map(e => ([
-                    escapeHtml(e.institution),
-                    escapeHtml(e.credential),
-                    escapeHtml(e.location || ""),
-                    escapeHtml(e.country),
-                    escapeHtml(e.fromDate),
-                    escapeHtml(e.toDate),
-                    actionCell(e.id, "education")
-                ]));
-            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
-            wireDeletes(panel);
-        }
-
-        // =========================
-        // CATEGORY: EMPLOYMENT
-        // =========================
-        function renderEmployment(panel) {
-            const form = addFormShell(panel, (fd, formEl) => {
-                const employer = (fd.get("employer") || "").toString().trim();
-                const title = (fd.get("title") || "").toString().trim();
-                const location = (fd.get("location") || "").toString().trim();
-                const country = (fd.get("country") || "").toString().trim();
-                const fromDate = (fd.get("fromDate") || "").toString();
-                const toDate = (fd.get("toDate") || "").toString();
-
-                if (!employer || !title || !country || !fromDate || !toDate) {
-                    setStatus("Please complete employer, job title, country, and dates.");
-                    return;
-                }
-                const s = parseDate(fromDate), t = parseDate(toDate);
-                if (s === null || t === null || t < s) {
-                    setStatus("To date must be the same as or after From date.");
-                    return;
-                }
-
-                state.employment.push({ id: uid(), employer, title, location, country, fromDate, toDate });
-                formEl.reset();
-                saveState();
-                render();
-                setStatus("Saved employment entry.");
-            });
-
-            form.appendChild(field("Employer", "employer", "text"));
-            form.appendChild(row([
-                field("Job title", "title", "text"),
-                field("Location (optional)", "location", "text", "City/Region")
-            ]));
-            form.appendChild(row([
-                field("Country", "country", "text"),
-                field(" ", "_spacer3", "text", "")
-            ]));
-            form.querySelector("#_spacer3").closest("div").style.display = "none";
-
-            form.appendChild(row([
-                field("From date", "fromDate", "date"),
-                field("To date", "toDate", "date")
-            ]));
-
-            const btns = document.createElement("div");
-            btns.className = "btnrow";
-            btns.innerHTML = `<button class="btn primary" type="submit">Add employment</button>`;
-            form.appendChild(btns);
-
-            const headers = ["Employer", "Title", "Location", "Country", "From", "To", ""];
-            const rows = state.employment
-                .slice()
-                .sort((a, b) => (parseDate(a.fromDate) || 0) - (parseDate(b.fromDate) || 0))
-                .map(j => ([
-                    escapeHtml(j.employer),
-                    escapeHtml(j.title),
-                    escapeHtml(j.location || ""),
-                    escapeHtml(j.country),
-                    escapeHtml(j.fromDate),
-                    escapeHtml(j.toDate),
-                    actionCell(j.id, "employment")
-                ]));
-            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
-            wireDeletes(panel);
-        }
-
-        // =========================
-        // CATEGORY: TRAVEL (TRIPS)
-        // =========================
-        function renderTravel(panel) {
-            const form = addFormShell(panel, (fd, formEl) => {
-                const country = (fd.get("country") || "").toString().trim();
-                const entryDate = (fd.get("entryDate") || "").toString();
-                const exitDate = (fd.get("exitDate") || "").toString();
-                const purpose = (fd.get("purpose") || "").toString().trim();
-
-                if (!country || !entryDate || !exitDate) {
-                    setStatus("Please complete country, entry date, and exit date.");
-                    return;
-                }
-                const s = parseDate(entryDate), t = parseDate(exitDate);
-                if (s === null || t === null || t < s) {
-                    setStatus("Exit date must be the same as or after Entry date.");
-                    return;
-                }
-
-                const days = daysBetween(entryDate, exitDate);
-                state.travel.push({ id: uid(), country, entryDate, exitDate, purpose, days });
-                formEl.reset();
-                saveState();
-                render();
-                setStatus("Saved trip.");
-            });
-
-            form.appendChild(row([
-                field("Country visited", "country", "text"),
-                field("Purpose (optional)", "purpose", "text", "e.g., tourism")
-            ]));
-            form.appendChild(row([
-                field("Entry date", "entryDate", "date"),
-                field("Exit date", "exitDate", "date")
-            ]));
-
-            const btns = document.createElement("div");
-            btns.className = "btnrow";
-            btns.innerHTML = `<button class="btn primary" type="submit">Add trip</button>`;
-            form.appendChild(btns);
-
-            const headers = ["Country", "Entry", "Exit", "Days", "Purpose", ""];
-            const rows = state.travel
-                .slice()
-                .sort((a, b) => (parseDate(a.entryDate) || 0) - (parseDate(b.entryDate) || 0))
-                .map(t => ([
-                    escapeHtml(t.country),
-                    escapeHtml(t.entryDate),
-                    escapeHtml(t.exitDate),
-                    escapeHtml(t.days ?? ""),
-                    escapeHtml(t.purpose || ""),
-                    actionCell(t.id, "travel")
-                ]));
-            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
-            wireDeletes(panel);
-        }
-
-        // =========================
-        // CATEGORY: PHYSICAL PRESENCE CALCULATOR (POC)
-        // =========================
-        function renderPresence(panel) {
-            // POC: user selects a window; we sum days outside (based on travel trips)
-            const box = document.createElement("div");
-            box.className = "card";
-            box.style.boxShadow = "none";
-
-            box.innerHTML = `
-            <div class="small muted">
-              This calculator is a <strong>basic estimator</strong>.
-              Real “physical presence” rules vary by program (citizenship, PR, etc.).
-            </div>
-            <div class="row" style="margin-top:10px;">
-              <div>
-                <label for="presenceFrom">Window start date</label>
-                <input id="presenceFrom" type="date" />
-              </div>
-              <div>
-                <label for="presenceTo">Window end date</label>
-                <input id="presenceTo" type="date" />
-              </div>
-            </div>
-            <div class="btnrow">
-              <button class="btn primary" id="btnCalcPresence" type="button">Calculate</button>
-            </div>
-            <div class="notice" id="presenceResult">Add travel trips to calculate time outside the window.</div>
-          `;
-
-            panel.appendChild(box);
-
-            const btn = box.querySelector("#btnCalcPresence");
-            btn.addEventListener("click", () => {
-                const from = box.querySelector("#presenceFrom").value;
-                const to = box.querySelector("#presenceTo").value;
-
-                const fromMs = parseDate(from);
-                const toMs = parseDate(to);
-
-                if (fromMs === null || toMs === null) {
-                    box.querySelector("#presenceResult").textContent = "Please choose a start and end date.";
-                    return;
-                }
-                if (toMs < fromMs) {
-                    box.querySelector("#presenceResult").textContent = "End date must be on/after start date.";
-                    return;
-                }
-
-                const windowDays = Math.round((toMs - fromMs) / (1000 * 60 * 60 * 24)) + 1;
-
-                // Calculate days outside within window (overlap of each trip with window)
-                let daysOutside = 0;
-                for (const trip of state.travel) {
-                    const s = parseDate(trip.entryDate);
-                    const e = parseDate(trip.exitDate);
-                    if (s === null || e === null) continue;
-
-                    const overlapStart = Math.max(s, fromMs);
-                    const overlapEnd = Math.min(e, toMs);
-                    if (overlapEnd >= overlapStart) {
-                        const overlapDays = Math.round((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1;
-                        daysOutside += overlapDays;
-                    }
-                }
-
-                const daysPresent = Math.max(0, windowDays - daysOutside);
-
-                box.querySelector("#presenceResult").textContent =
-                    `Window days: ${windowDays}\n` +
-                    `Estimated days outside (from travel trips): ${daysOutside}\n` +
-                    `Estimated days present: ${daysPresent}\n\n` +
-                    `Note: This assumes every travel entry represents time outside your country of residence. Adjust as needed for your application rules.`;
-            });
-        }
-
-        // =========================
-        // CATEGORY: PASSPORTS / TRAVEL DOCS (MULTIPLE)
-        // =========================
-        function renderPassports(panel) {
-            const form = addFormShell(panel, (fd, formEl) => {
-                const docType = (fd.get("docType") || "").toString();
-                const country = (fd.get("country") || "").toString().trim();
-                const number = (fd.get("number") || "").toString().trim();
-                const issueDate = (fd.get("issueDate") || "").toString();
-                const expiryDate = (fd.get("expiryDate") || "").toString();
-                const holderName = (fd.get("holderName") || "").toString().trim();
-
-                if (!docType || !country || !number || !issueDate || !expiryDate) {
-                    setStatus("Please complete doc type, country, number, and issue/expiry dates.");
-                    return;
-                }
-
-                const issue = parseDate(issueDate), exp = parseDate(expiryDate);
-                if (issue === null || exp === null || exp < issue) {
-                    setStatus("Expiry date must be the same as or after issue date.");
-                    return;
-                }
-
-                state.passports.push({ id: uid(), docType, country, number, issueDate, expiryDate, holderName });
-                formEl.reset();
-                saveState();
-                render();
-                setStatus("Saved travel document.");
-            });
-
-            form.appendChild(row([
-                selectField("Document type", "docType", [
-                    { value: "", label: "Select" },
-                    { value: "passport", label: "Passport" },
-                    { value: "travel-document", label: "Travel document" },
-                    { value: "refugee-travel-document", label: "Refugee travel document" },
-                    { value: "other", label: "Other" }
-                ]),
-                field("Issuing country", "country", "text")
-            ]));
-            form.appendChild(row([
-                field("Document number", "number", "text"),
-                field("Holder name (optional)", "holderName", "text", "As printed")
-            ]));
-            form.appendChild(row([
-                field("Issue date", "issueDate", "date"),
-                field("Expiry date", "expiryDate", "date")
-            ]));
-
-            const note = document.createElement("div");
-            note.className = "notice";
-            note.textContent = "Document uploads are not available in this POC. Future: attach scans/photos per document.";
-            form.appendChild(note);
-
-            const btns = document.createElement("div");
-            btns.className = "btnrow";
-            btns.innerHTML = `<button class="btn primary" type="submit">Add document</button>`;
-            form.appendChild(btns);
-
-            const headers = ["Type", "Country", "Number", "Issue", "Expiry", "Holder name", ""];
-            const rows = state.passports
-                .slice()
-                .sort((a, b) => (parseDate(a.issueDate) || 0) - (parseDate(b.issueDate) || 0))
-                .map(p => ([
-                    escapeHtml(p.docType),
-                    escapeHtml(p.country),
-                    escapeHtml(p.number),
-                    escapeHtml(p.issueDate),
-                    escapeHtml(p.expiryDate),
-                    escapeHtml(p.holderName || ""),
-                    actionCell(p.id, "passports")
-                ]));
-            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
-            wireDeletes(panel);
-        }
-
-        // =========================
-        // CATEGORY: SSN/SIN (WARNING + ACK REQUIRED)
-        // =========================
-        function renderIDs(panel) {
-            const warn = document.createElement("div");
-            warn.className = "inlineWarn";
-            warn.innerHTML = `
-            <div>
-              <strong>Warning: sensitive information</strong>
-              <div class="small muted">
-                SSN/SIN are highly sensitive. This POC stores data locally in your browser.
-                Use at your own risk and avoid shared/public computers.
-              </div>
-            </div>
-          `;
-            panel.appendChild(warn);
-
-            const form = addFormShell(panel, (fd, formEl) => {
-                const idType = (fd.get("idType") || "").toString();
-                const value = (fd.get("value") || "").toString().trim();
-                const notes = (fd.get("notes") || "").toString().trim();
-                const ack = (fd.get("ack") || "").toString();
-
-                if (!idType || !value) {
-                    setStatus("Please select SSN or SIN and enter a value.");
-                    return;
-                }
-                if (ack !== "yes") {
-                    setStatus("Please confirm you understand the sensitivity warning before saving.");
-                    return;
-                }
-
-                state.ids.push({ id: uid(), idType, value, notes, warningAcceptedAt: new Date().toISOString() });
-                formEl.reset();
-                saveState();
-                render();
-                setStatus("Saved ID entry.");
-            });
-
-            form.appendChild(row([
-                selectField("ID type", "idType", [
-                    { value: "", label: "Select" },
-                    { value: "SSN", label: "SSN (USA)" },
-                    { value: "SIN", label: "SIN (Canada)" }
-                ]),
-                field("Value", "value", "text", "Enter carefully")
-            ]));
-
-            const chk = document.createElement("div");
-            chk.className = "chkRow";
-            chk.innerHTML = `
-            <input type="checkbox" id="ack" name="ack" value="yes" />
-            <label for="ack" style="margin:0; font-weight:700;">
-              I understand this is sensitive and I should avoid shared/public devices.
-            </label>
-          `;
-            form.appendChild(chk);
-
-            const note = document.createElement("div");
-            note.className = "notice";
-            note.textContent = "Document uploads are not available in this POC. Future: attach scans/photos if needed.";
-            form.appendChild(note);
-
-            const notesField = document.createElement("div");
-            notesField.innerHTML = `
-            <label for="notes">Notes (optional)</label>
-            <textarea id="notes" name="notes" placeholder="e.g., where it’s stored, last updated..."></textarea>
-          `;
-            form.appendChild(notesField);
-
-            const btns = document.createElement("div");
-            btns.className = "btnrow";
-            btns.innerHTML = `<button class="btn primary" type="submit">Add SSN/SIN</button>`;
-            form.appendChild(btns);
-
-            // table (mask values in table)
-            const headers = ["Type", "Value (masked)", "Notes", "Saved", ""];
-            const rows = state.ids.map(x => {
-                const v = (x.value || "");
-                const masked = v.length <= 4 ? "••••" : "•••••••" + v.slice(-4);
-                return [
-                    escapeHtml(x.idType),
-                    escapeHtml(masked),
-                    escapeHtml(x.notes || ""),
-                    escapeHtml((x.warningAcceptedAt || "").slice(0, 10)),
-                    actionCell(x.id, "ids")
-                ];
-            });
-
-            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
-            wireDeletes(panel);
-        }
-
-        // =========================
-        // CATEGORY: LANGUAGE PROOF
-        // =========================
-        function renderLanguage(panel) {
-            const form = addFormShell(panel, (fd, formEl) => {
-                const testType = (fd.get("testType") || "").toString().trim();
-                const score = (fd.get("score") || "").toString().trim();
-                const testDate = (fd.get("testDate") || "").toString();
-                const expiryDate = (fd.get("expiryDate") || "").toString();
-                const notes = (fd.get("notes") || "").toString().trim();
-
-                if (!testType || !score || !testDate) {
-                    setStatus("Please complete test type, score, and test date.");
-                    return;
-                }
-                const t = parseDate(testDate);
-                const e = expiryDate ? parseDate(expiryDate) : null;
-                if (t === null) { setStatus("Please check the test date."); return; }
-                if (e !== null && e < t) { setStatus("Expiry date must be on/after test date."); return; }
-
-                state.language.push({ id: uid(), testType, score, testDate, expiryDate, notes });
-                formEl.reset();
-                saveState();
-                render();
-                setStatus("Saved language proof entry.");
-            });
-
-            form.appendChild(row([
-                field("Test type", "testType", "text", "e.g., IELTS, CELPIP, TEF"),
-                field("Score", "score", "text", "e.g., CLB 9, Overall 7.5")
-            ]));
-            form.appendChild(row([
-                field("Test date", "testDate", "date"),
-                field("Expiry date (optional)", "expiryDate", "date")
-            ]));
-
-            const note = document.createElement("div");
-            note.className = "notice";
-            note.textContent = "Document uploads are not available in this POC. Future: attach result PDF or certificate image.";
-            panel.appendChild(note);
-
-            const notesField = document.createElement("div");
-            notesField.innerHTML = `
-            <label for="notes">Notes (optional)</label>
-            <textarea id="notes" name="notes" placeholder="e.g., TRF number, test center, breakdown..."></textarea>
-          `;
-            panel.appendChild(notesField);
-
-            // Put notes inside form by moving the last appended element
-            // (We appended to panel for readability; move into form now)
-            form.appendChild(notesField);
-
-            const btns = document.createElement("div");
-            btns.className = "btnrow";
-            btns.innerHTML = `<button class="btn primary" type="submit">Add language proof</button>`;
-            form.appendChild(btns);
-
-            const headers = ["Test", "Score", "Test date", "Expiry", "Notes", ""];
-            const rows = state.language
-                .slice()
-                .sort((a, b) => (parseDate(a.testDate) || 0) - (parseDate(b.testDate) || 0))
-                .map(x => ([
-                    escapeHtml(x.testType),
-                    escapeHtml(x.score),
-                    escapeHtml(x.testDate),
-                    escapeHtml(x.expiryDate || ""),
-                    escapeHtml(x.notes || ""),
-                    actionCell(x.id, "language")
-                ]));
-            panel.insertAdjacentHTML("beforeend", buildTable(headers, rows));
-            wireDeletes(panel);
-        }
-
-        function wireDeletes(panel) {
-            panel.querySelectorAll("[data-del]").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    const id = btn.getAttribute("data-id");
-                    const cat = btn.getAttribute("data-cat");
-                    deleteEntry(cat, id);
-                });
-            });
-        }
-
-        // =========================
-        // INIT
-        // =========================
-        if (!state.ui) state.ui = { active: "addresses" };
-        if (!state.ui.active) state.ui.active = "addresses";
-        saveState();
-        render();
-    </script>
+  <div id="app"></div>
+  <script src="app.js"></script>
 </body>
 </html>
