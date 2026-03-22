@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Visa Buddy Autofill",
+  "version": "1.0.0",
+  "description": "Autofill immigration forms using your Visa Buddy profile.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://YOUR_PROJECT.supabase.co/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.canada.ca/*",
+        "https://ircc.canada.ca/*",
+        "https://secure.cic.gc.ca/*",
+        "https://www.uscis.gov/*",
+        "https://*.immigration.govt.nz/*",
+        "https://www.gov.uk/apply-*"
+      ],
+      "js": ["content.js"]
+    }
+  ]
+}
