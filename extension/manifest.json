@@ -1,34 +1,39 @@
 {
-  "manifest_version": 3,
-  "name": "Visa Buddy Autofill",
-  "version": "1.0.0",
-  "description": "Autofill immigration forms using your Visa Buddy profile.",
-  "permissions": [
-    "activeTab",
-    "storage",
-    "scripting",
-    "alarms"
-  ],
-  "host_permissions": [
-    "https://visabuddy-sable.vercel.app/*"
-  ],
-  "action": {
-    "default_popup": "popup.html"
-  },
-  "background": {
-    "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://www.canada.ca/*",
-        "https://ircc.canada.ca/*",
-        "https://secure.cic.gc.ca/*",
-        "https://www.uscis.gov/*",
-        "https://*.immigration.govt.nz/*",
-        "https://www.gov.uk/apply-*"
-      ],
-      "js": ["content.js"]
-    }
-  ]
+    "manifest_version": 3,
+    "name": "Visa Buddy Autofill",
+    "version": "1.0.0",
+    "description": "Autofill immigration forms using your Visa Buddy profile.",
+    "permissions": [
+        "activeTab",
+        "storage",
+        "scripting",
+        "alarms"
+    ],
+    "host_permissions": [
+        "https://visabuddy-sable.vercel.app/*"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "externally_connectable": {
+        "matches": [
+            "https://visabuddy-sable.vercel.app/*"
+        ]
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://www.canada.ca/*",
+                "https://ircc.canada.ca/*",
+                "https://secure.cic.gc.ca/*",
+                "https://www.uscis.gov/*",
+                "https://*.immigration.govt.nz/*",
+                "https://www.gov.uk/apply-*"
+            ],
+            "js": [ "content.js" ]
+        }
+    ]
 }

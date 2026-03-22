@@ -69,7 +69,7 @@ async function loadData() {
 function syncExtension() {
   if (!state.session) return;
   // After loading the extension in Chrome, paste your Extension ID here
-  const EXT_ID = 'bbaloioooicmgopjnimeccnipeccmehi';
+   const EXT_ID = 'ghkmflcoabbnhhohggcfbhekjhdfafak';
   if (typeof chrome === 'undefined' || !chrome?.runtime?.sendMessage) return;
   try {
     chrome.runtime.sendMessage(EXT_ID, {
