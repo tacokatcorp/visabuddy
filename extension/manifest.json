@@ -3,18 +3,17 @@
   "name": "Visa Buddy Autofill",
   "version": "1.0.0",
   "description": "Autofill immigration forms using your Visa Buddy profile.",
-  "permissions": [
-    "activeTab",
-    "storage",
-    "scripting"
-  ],
-  "host_permissions": [
-    "https://YOUR_PROJECT.supabase.co/*"
-  ],
+    "permissions": [
+        "activeTab",
+        "storage",
+        "scripting",
+        "alarms"
+    ],
+    "host_permissions": [
+        "https://visabuddy-sable.vercel.app/"
+    ],
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-    }
+    "default_popup": "popup.html"
   },
   "background": {
     "service_worker": "background.js"

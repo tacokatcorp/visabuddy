@@ -4,7 +4,7 @@
 //  extension storage so popup can use it offline
 // ─────────────────────────────────────────────
 
-const SUPABASE_URL = 'https://visabuddy-sable.vercel.app/';
+const SUPABASE_URL = 'https://visabuddy-sable.vercel.app';
 const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
 
 // Sync profile from Supabase using a stored token
