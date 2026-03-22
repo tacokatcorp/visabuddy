@@ -2,7 +2,7 @@
 //  Visa Buddy — Main Application
 // ─────────────────────────────────────────────
 
-const SUPABASE_URL = 'https://outguujfdmkyupsgtqdq.supabase.co/';
+const SUPABASE_URL = 'https://outguujfdmkyupsgtqdq.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_2TH6Jr-XvR1OUkuoS8g92A_m2TYDhgy';
 
 const { createClient } = supabase;
@@ -62,6 +62,24 @@ async function loadData() {
     .single();
   if (error && error.code !== 'PGRST116') { console.error('Load error:', error); return; }
   if (row?.data) state.data = { ...state.data, ...row.data };
+  syncExtension();
+}
+
+// Push profile to Chrome extension after login or data load
+function syncExtension() {
+  if (!state.session) return;
+  // After loading the extension in Chrome, paste your Extension ID here
+  const EXT_ID = 'bbaloioooicmgopjnimeccnipeccmehi';
+  if (typeof chrome === 'undefined' || !chrome?.runtime?.sendMessage) return;
+  try {
+    chrome.runtime.sendMessage(EXT_ID, {
+      type: 'VISA_BUDDY_SYNC',
+      accessToken: state.session.access_token,
+      userId: state.session.user.id,
+      email: state.session.user.email,
+      profile: state.data
+    }, () => { if (chrome.runtime.lastError) { /* extension not installed, ignore */ } });
+  } catch (e) { /* extension not installed */ }
 }
 
 async function saveData() {

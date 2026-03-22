@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Visa Buddy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 340px;
+      min-height: 200px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      background: #FDFAF5;
+      color: #2A2318;
+    }
+    .header {
+      background: #2A2318;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-icon { background: #0D9488; border-radius: 7px; width: 26px; height: 26px; display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0; }
+    .logo-text { font-family: 'DM Serif Display', serif; font-size: 18px; color: #FDFAF5; }
+    .body { padding: 16px 18px; }
+    .section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #9E8C70; margin-bottom: 8px; margin-top: 14px; }
+    .section-title:first-child { margin-top: 0; }
+    .fill-btn {
+      width: 100%;
+      background: #0D9488;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      transition: background 0.15s;
+    }
+    .fill-btn:hover { background: #0F766E; }
+    .fill-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .fill-btn .arrow { opacity: 0.7; }
+    .status { font-size: 12px; color: #9E8C70; padding: 8px 0; }
+    .status.success { color: #0F766E; }
+    .status.error { color: #C84B2F; }
+    .not-linked {
+      padding: 20px 0;
+      text-align: center;
+    }
+    .not-linked p { font-size: 13px; color: #9E8C70; margin-bottom: 14px; line-height: 1.5; }
+    .open-webapp {
+      display: inline-block;
+      background: #2A2318;
+      color: #FDFAF5;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .divider { height: 1px; background: #E8DCC8; margin: 12px 0; }
+    .field-count { font-size: 11px; background: rgba(13,148,136,0.12); color: #0F766E; padding: 2px 7px; border-radius: 999px; }
+    .spinner { display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo-icon">🛂</div>
+    <span class="logo-text">Visa Buddy</span>
+  </div>
+  <div class="body" id="popup-body">
+    <div class="status">Loading…</div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
