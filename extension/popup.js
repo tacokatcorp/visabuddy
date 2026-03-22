@@ -2,7 +2,7 @@
 //  Visa Buddy — Extension Popup
 // ─────────────────────────────────────────────
 
-const WEBAPP_URL = 'https://your-visa-buddy-app.vercel.app'; // Update this
+const WEBAPP_URL = 'https://visabuddy-sable.vercel.app/';
 
 const body = document.getElementById('popup-body');
 
